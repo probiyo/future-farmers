@@ -59,23 +59,27 @@ translations = {
         "title": "Future Farmers 🌱",
         "subtitle": "Scientix Projesi Gözlem ve Mikroklima Veri Giriş Portalı",
         "welcome": "🔬 <b>Sevgili Vatandaş Bilimciler,</b><br>Seçtiğiniz sabit çay bitkisinin gelişimini, rakıma ve hava koşullarına bağlı olarak gözlemleyip kaydediniz. Girdiğiniz veriler doğrudan bilimsel analiz veri tabanımıza aktarılacaktır.",
-        "sec1_title": "### 1. Konum ve Ortam Koşulları",
+        "sec1_title": "### 1. Konum ve Ortam Koşulları / Location & Environment",
         "obs_type": "Gözlem Nesnesi / Türü:",
         "obs_options": ["Proje Bitkim (Çay)", "Diğer Tarım Bitkisi", "Çevredeki Doğal Canlı"],
         "altitude": "Bulunduğunuz Konumun Rakımı (Metre):",
         "altitude_help": "Telefonunuzun pusula veya altimetre uygulamasından yüksekliğinizi deniz seviyesine göre metre cinsinden yazın.",
         "weather": "Hava Durumu:",
         "weather_options": ["Güneşli", "Parçalı Bulutlu", "Çok Bulutlu / Kapalı", "Yağmurlu", "Sisli", "Karlı"],
-        "sec2_title": "### 2. Bitki Sağlığı ve Gözlemler",
+        "sec2_title": "### 2. Bitki Sağlığı ve Gözlemler / Health & Observations",
         "stress": "Bitki Sağlık ve Stres Skoru (1-5):",
         "stress_help": "1: Çok Sağlıklı/Canlı, 3: Normal Gelişim, 5: Kritik Stres (Kuruma, hastalık veya zararlı yoğun).",
         "notes": "Gözlem Notlarınız ve Bulgularınız:",
         "notes_placeholder": "Örn: Bu hafta yeni taze filizler oluşmaya başladı. Yapraklarda sararma yok...",
-        "photo": "Bitki Gözlem Fotoğrafı (JPEG formatında):",
+        "photo_source": "Fotoğraf Ekleme Yöntemi:",
+        "photo_camera": "Kamera ile Fotoğraf Çek 📸",
+        "photo_upload": "Galeriden/Dosyadan Yükle 📁",
+        "photo_camera_label": "Kamerayı Başlat ve Fotoğraf Çek:",
+        "photo_upload_label": "Bitki Fotoğrafı Yükle (JPEG/PNG):",
         "photo_help": "Doğru analiz için her hafta aynı açıdan ve mesafeden fotoğraf çekmeye özen gösterin.",
         "submit_btn": "Verileri Bilim Veritabanına Gönder 🚀",
         "err_config": "⚠️ Sistem Ayarı Eksik: Lütfen kodun en üstündeki WEB_APP_URL değişkenine geçerli Apps Script adresinizi gömün!",
-        "err_photo": "⚠️ Lütfen bilimsel kanıt olarak bitkinizin bir fotoğrafını yükleyin!",
+        "err_photo": "⚠️ Lütfen bilimsel kanıt olarak bitkinizin bir fotoğrafını çekin veya yükleyin!",
         "spinner": "Verileriniz şifreleniyor ve veri havuzuna aktarılıyor...",
         "success": "🎉 Harika! Gözlem verileriniz başarıyla kaydedildi. Bir sonraki haftalık gözlemde görüşmek üzere vatandaş bilimci!",
         "err_server": "Sunucudan geçersiz yanıt alındı: ",
@@ -97,11 +101,15 @@ translations = {
         "stress_help": "1: Very Healthy/Vigorous, 3: Normal Growth, 5: Critical Stress (Drying, disease, or pest infestation).",
         "notes": "Your Observation Notes & Findings:",
         "notes_placeholder": "e.g., New fresh shoots started to form this week. No yellowing on leaves...",
-        "photo": "Plant Observation Photo (JPEG format):",
+        "photo_source": "Photo Adding Method:",
+        "photo_camera": "Take Photo with Camera 📸",
+        "photo_upload": "Upload from Gallery/File 📁",
+        "photo_camera_label": "Start Camera and Take Photo:",
+        "photo_upload_label": "Upload Plant Photo (JPEG/PNG):",
         "photo_help": "For accurate analysis, try to take the photo from the same angle and distance each week.",
         "submit_btn": "Submit Data to Scientific Database 🚀",
         "err_config": "⚠️ System Configuration Missing: Please embed your valid Apps Script address into the WEB_APP_URL variable!",
-        "err_photo": "⚠️ Please upload a photo of your plant as scientific evidence!",
+        "err_photo": "⚠️ Please upload or take a photo of your plant as scientific evidence!",
         "spinner": "Encrypting your data and transferring to the scientific database...",
         "success": "🎉 Fantastic! Your observation data has been successfully recorded. See you next week, citizen scientist!",
         "err_server": "Invalid response received from server: ",
@@ -155,11 +163,24 @@ with st.form("gozlem_formu", clear_on_submit=False):
         placeholder=t["notes_placeholder"]
     )
     
-    uploaded_file = st.file_uploader(
-        t["photo"], 
-        type=["jpg", "jpeg", "png"],
-        help=t["photo_help"]
+    foto_yontemi = st.radio(
+        t["photo_source"],
+        [t["photo_camera"], t["photo_upload"]],
+        horizontal=True
     )
+    
+    uploaded_file = None
+    if foto_yontemi == t["photo_camera"]:
+        uploaded_file = st.camera_input(
+            t["photo_camera_label"],
+            help=t["photo_help"]
+        )
+    else:
+        uploaded_file = st.file_uploader(
+            t["photo_upload_label"],
+            type=["jpg", "jpeg", "png"],
+            help=t["photo_help"]
+        )
     
     submitted = st.form_submit_button(t["submit_btn"])
 
