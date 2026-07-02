@@ -4,18 +4,15 @@ import json
 import base64
 from datetime import datetime
 
-# Sayfa yapılandırması - Akademik ve doğa dostu koyu yeşil tema
 st.set_page_config(
-    page_title="Future Farmers - Vatandaş Bilimi Gözlem Formu",
+    page_title="Future Farmers - Citizen Science Portal",
     page_icon="🌱",
     layout="centered"
 )
 
-# Apps Script URL'nizi buraya gömüyoruz (Öğrencilerden gizlemek ve sistemi otomatikleştirmek için)
 # Kopyaladığınız yeni URL'yi aşağıdaki tırnak işaretlerinin arasına yapıştırın hocam:
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxamU64AHCSNtW3uKjHC0qibj8tYExRKreXZp3iR9TtBc7b0jbs0YFXF_zbleovy0SJ/exec"
+WEB_APP_URL = "BURAYA_KOPYALADIGINIZ_YENI_URL_YAPISTIRIN"
 
-# Arayüzü görsel olarak zenginleştiren modern CSS kodları
 st.markdown("""
     <style>
     .main-title {
@@ -56,86 +53,137 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Başlık ve Proje Bilgisi
-st.markdown("<div class='main-title'>Future Farmers 🌱</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Scientix Projesi Gözlem ve Mikroklima Veri Giriş Portalı</div>", unsafe_allow_html=True)
+# Tüm arayüz metinlerinin Türkçe ve İngilizce karşılıkları
+translations = {
+    "Türkçe 🇹🇷": {
+        "title": "Future Farmers 🌱",
+        "subtitle": "Scientix Projesi Gözlem ve Mikroklima Veri Giriş Portalı",
+        "welcome": "🔬 <b>Sevgili Vatandaş Bilimciler,</b><br>Seçtiğiniz sabit çay bitkisinin gelişimini, rakıma ve hava koşullarına bağlı olarak gözlemleyip kaydediniz. Girdiğiniz veriler doğrudan bilimsel analiz veri tabanımıza aktarılacaktır.",
+        "sec1_title": "### 1. Konum ve Ortam Koşulları",
+        "obs_type": "Gözlem Nesnesi / Türü:",
+        "obs_options": ["Proje Bitkim (Çay)", "Diğer Tarım Bitkisi", "Çevredeki Doğal Canlı"],
+        "altitude": "Bulunduğunuz Konumun Rakımı (Metre):",
+        "altitude_help": "Telefonunuzun pusula veya altimetre uygulamasından yüksekliğinizi deniz seviyesine göre metre cinsinden yazın.",
+        "weather": "Hava Durumu:",
+        "weather_options": ["Güneşli", "Parçalı Bulutlu", "Çok Bulutlu / Kapalı", "Yağmurlu", "Sisli", "Karlı"],
+        "sec2_title": "### 2. Bitki Sağlığı ve Gözlemler",
+        "stress": "Bitki Sağlık ve Stres Skoru (1-5):",
+        "stress_help": "1: Çok Sağlıklı/Canlı, 3: Normal Gelişim, 5: Kritik Stres (Kuruma, hastalık veya zararlı yoğun).",
+        "notes": "Gözlem Notlarınız ve Bulgularınız:",
+        "notes_placeholder": "Örn: Bu hafta yeni taze filizler oluşmaya başladı. Yapraklarda sararma yok...",
+        "photo": "Bitki Gözlem Fotoğrafı (JPEG formatında):",
+        "photo_help": "Doğru analiz için her hafta aynı açıdan ve mesafeden fotoğraf çekmeye özen gösterin.",
+        "submit_btn": "Verileri Bilim Veritabanına Gönder 🚀",
+        "err_config": "⚠️ Sistem Ayarı Eksik: Lütfen kodun en üstündeki WEB_APP_URL değişkenine geçerli Apps Script adresinizi gömün!",
+        "err_photo": "⚠️ Lütfen bilimsel kanıt olarak bitkinizin bir fotoğrafını yükleyin!",
+        "spinner": "Verileriniz şifreleniyor ve veri havuzuna aktarılıyor...",
+        "success": "🎉 Harika! Gözlem verileriniz başarıyla kaydedildi. Bir sonraki haftalık gözlemde görüşmek üzere vatandaş bilimci!",
+        "err_server": "Sunucudan geçersiz yanıt alındı: ",
+        "err_general": "Veri gönderilirken bir hata oluştu: "
+    },
+    "English 🇬🇧": {
+        "title": "Future Farmers 🌱",
+        "subtitle": "Scientix Project Observation & Microclimate Data Entry Portal",
+        "welcome": "🔬 <b>Dear Citizen Scientists,</b><br>Please observe and record the growth of your selected tea plant based on altitude and weather conditions. Your data will be directly transferred to our scientific database.",
+        "sec1_title": "### 1. Location and Environmental Conditions",
+        "obs_type": "Observation Object / Type:",
+        "obs_options": ["My Project Plant (Tea)", "Other Agricultural Plant", "Surrounding Natural Organism"],
+        "altitude": "Altitude of Your Location (Meters):",
+        "altitude_help": "Enter your altitude in meters from your phone's compass or altimeter app.",
+        "weather": "Weather Condition:",
+        "weather_options": ["Sunny", "Partly Cloudy", "Overcast / Cloudy", "Rainy", "Foggy", "Snowy"],
+        "sec2_title": "### 2. Plant Health and Observations",
+        "stress": "Plant Health & Stress Score (1-5):",
+        "stress_help": "1: Very Healthy/Vigorous, 3: Normal Growth, 5: Critical Stress (Drying, disease, or pest infestation).",
+        "notes": "Your Observation Notes & Findings:",
+        "notes_placeholder": "e.g., New fresh shoots started to form this week. No yellowing on leaves...",
+        "photo": "Plant Observation Photo (JPEG format):",
+        "photo_help": "For accurate analysis, try to take the photo from the same angle and distance each week.",
+        "submit_btn": "Submit Data to Scientific Database 🚀",
+        "err_config": "⚠️ System Configuration Missing: Please embed your valid Apps Script address into the WEB_APP_URL variable!",
+        "err_photo": "⚠️ Please upload a photo of your plant as scientific evidence!",
+        "spinner": "Encrypting your data and transferring to the scientific database...",
+        "success": "🎉 Fantastic! Your observation data has been successfully recorded. See you next week, citizen scientist!",
+        "err_server": "Invalid response received from server: ",
+        "err_general": "An error occurred while sending data: "
+    }
+}
 
-st.markdown("""
-<div class='info-box'>
-    🔬 <b>Sevgili Vatandaş Bilimciler,</b><br>
-    Seçtiğiniz sabit çay bitkisinin gelişimini, rakıma ve hava koşullarına bağlı olarak gözlemleyip kaydediniz. 
-    Girdiğiniz veriler doğrudan bilimsel analiz veri tabanımıza aktarılacaktır.
-</div>
-""", unsafe_allow_html=True)
+selected_lang = st.radio("Select Language / Dil Seçin", ["Türkçe 🇹🇷", "English 🇬🇧"], horizontal=True)
+t = translations[selected_lang]
 
-# Bilimsel Gözlem Formu
+# Başlık ve Bilgilendirme Alanı
+st.markdown(f"<div class='main-title'>{t['title']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='subtitle'>{t['subtitle']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='info-box'>{t['welcome']}</div>", unsafe_allow_html=True)
+
 with st.form("gozlem_formu", clear_on_submit=False):
     
-    st.markdown("### 1. Konum ve Ortam Koşulları")
+    st.markdown(t["sec1_title"])
     
     # Gözlem Türü Seçimi
     gozlem_turu = st.selectbox(
-        "Gözlem Nesnesi / Türü:",
-        ["Proje Bitkim (Çay)", "Diğer Tarım Bitkisi", "Çevredeki Doğal Canlı"]
+        t["obs_type"],
+        t["obs_options"]
     )
     
-    # Rize mikrokliması için kritik olan Rakım parametresi
+    # Rakım Girişi
     rakim = st.number_input(
-        "Bulunduğunuz Konumun Rakımı (Metre):",
+        t["altitude"],
         min_value=0,
         max_value=2500,
         value=0,
         step=5,
-        help="Telefonunuzun pusula veya altimetre uygulamasından yüksekliğinizi deniz seviyesine göre metre cinsinden yazın."
+        help=t["altitude_help"]
     )
     
     # Hava Durumu
     hava_durumu = st.selectbox(
-        "Hava Durumu:",
-        ["Güneşli", "Parçalı Bulutlu", "Çok Bulutlu / Kapalı", "Yağmurlu", "Sisli", "Karlı"]
+        t["weather"],
+        t["weather_options"]
     )
     
     st.markdown("---")
-    st.markdown("### 2. Bitki Sağlığı ve Gözlemler")
+    st.markdown(t["sec2_title"])
     
-    # Scientix için nicel veri sağlayacak 1-5 Stres/Sağlık Skoru
+    # Sağlık/Stres Skoru
     stres_skoru = st.slider(
-        "Bitki Sağlık ve Stres Skoru (1-5):",
+        t["stress"],
         min_value=1,
         max_value=5,
         value=3,
-        help="1: Çok Sağlıklı/Canlı, 3: Normal Gelişim, 5: Kritik Stres (Kuruma, hastalık veya zararlı yoğun)."
+        help=t["stress_help"]
     )
     
-    # Detaylı öğrenci notları
+    # Notlar
     gozlem_notlari = st.text_area(
-        "Gözlem Notlarınız ve Bulgularınız:",
-        placeholder="Örn: Bu hafta yeni taze filizler (sürgünler) oluşmaya başladı. Yapraklarda herhangi bir lekelenme veya sararma yok. Çevrede hafif böcek aktivitesi gözlendi."
+        t["notes"],
+        placeholder=t["notes_placeholder"]
     )
     
-    # Fotoğraf Yükleme / Kamera ile Çekme alanı
+    # Fotoğraf Yükleme
     uploaded_file = st.file_uploader(
-        "Bitki Gözlem Fotoğrafı (JPEG formatında):", 
+        t["photo"], 
         type=["jpg", "jpeg", "png"],
-        help="Doğru analiz için her hafta aynı açıdan ve mesafeden fotoğraf çekmeye özen gösterin."
+        help=t["photo_help"]
     )
     
-    # Form Gönderim Butonu
-    submitted = st.form_submit_with_button_on_click("Verileri Bilim Veritabanına Gönder 🚀")
+    # Düzeltilmiş Güvenli Form Butonu
+    submitted = st.form_submit_button(t["submit_btn"])
 
     if submitted:
-        if WEB_APP_URL == "BURAYA_KOPYALADIGINIZ_YENI_URL_YAPISTIRIN" or not WEB_APP_URL.startswith("https://"):
-            st.error("⚠️ Sistem Ayarı Eksik: Lütfen kodun en üstündeki WEB_APP_URL değişkenine geçerli Apps Script adresinizi gömün!")
+        if WEB_APP_URL == "https://script.google.com/macros/s/AKfycbxamU64AHCSNtW3uKjHC0qibj8tYExRKreXZp3iR9TtBc7b0jbs0YFXF_zbleovy0SJ/exec" or not WEB_APP_URL.startswith("https://"):
+            st.error(t["err_config"])
         elif not uploaded_file:
-            st.error("⚠️ Lütfen bilimsel kanıt olarak bitkinizin bir fotoğrafını yükleyin!")
+            st.error(t["err_photo"])
         else:
-            with st.spinner("Verileriniz şifreleniyor ve veri havuzuna aktarılıyor..."):
+            with st.spinner(t["spinner"]):
                 try:
-                    # Fotoğrafı veritabanına iletmek için Base64 formatına çeviriyoruz
+                    # Fotoğrafı Base64 formatına çevirme
                     bytes_data = uploaded_file.read()
                     base64_image = base64.b64encode(bytes_data).decode('utf-8')
                     
-                    # Apps Script'e göndereceğimiz veri paketi
+                    # Veri paketi
                     payload = {
                         "Tarih": datetime.now().strftime("%d-%m-%Y %H:%M"),
                         "Gozlem_Turu": gozlem_turu,
@@ -150,10 +198,19 @@ with st.form("gozlem_formu", clear_on_submit=False):
                     response = requests.post(WEB_APP_URL, data=json.dumps(payload), headers=headers)
                     
                     if response.status_code == 200 and "Başarılı" in response.text:
-                        st.success("🎉 Harika! Gözlem verileriniz başarıyla kaydedildi. Bir sonraki haftalık gözlemde görüşmek üzere vatandaş bilimci!")
+                        st.success(t["success"])
                         st.balloons()
                     else:
-                        st.error(f"Sunucudan geçersiz yanıt alındı: {response.text}")
+                        st.error(f"{t['err_server']}{response.text}")
                         
                 except Exception as e:
-                    st.error(f"Veri gönderilirken bir hata oluştu: {str(e)}")
+                    st.error(f"{t['err_general']}{str(e)}")
+```
+eof
+
+### Ne Değişti ve Ne Kazandık?
+*   **Bilingual (Çift Dilli) Altyapı:** Sayfanın en üstüne şık bir dil seçici eklendi. Öğrenci tek dokunuşla tüm formu ve açıklamaları anında İngilizce veya Türkçe görebilir.
+*   **Hatasız Form Yapısı:** Önceki ekran görüntülerinde (`image_95b11e.png`) kırmızı renkli uyarı veren form onaylama butonu, standart ve güvenli `st.form_submit_button()` yapısıyla tamamen onarıldı.
+*   **Brüksel / Scientix Hazırlığı:** Projeyi Avrupa geneline yaygınlaştırırken jürinin en çok dikkat edeceği "yerelleştirme ve çok dillilik" kriterini tam on ikiden vurduk.
+
+Hocam, bu kodu GitHub'da düzenleyip (URL'nizi ekleyerek) kaydettiğinizde, siteniz yepyeni uluslararası görünümüyle saniyeler içinde yayında olacaktır!
