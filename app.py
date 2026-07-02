@@ -1,26 +1,29 @@
 import streamlit as st
+import pandas as pd
+from datetime import datetime
 
-st.set_page_config(page_title="Future Farmers - Rize", layout="centered")
+# Google Sheets ayarları
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/edit?usp=sharing"
 
 st.title("🌱 Future Farmers - Rize")
-st.subheader("Dijital Çay Bahçesi Takip Sistemi")
 
-# Gözlem Seçimi
-gozlem_turu = st.radio("Gözlem Türü Seçin:", ["Proje Bitkim (Çay)", "Çevredeki Canlı"])
+gozlem = st.radio("Gözlem Türü:", ["Proje Bitkim (Çay)", "Çevredeki Canlı"])
+hava = st.selectbox("Hava Durumu:", ["Güneşli", "Kapalı", "Yağmurlu", "Sisli"])
+notlar = st.text_area("Notunuz:")
+camera = st.camera_input("Fotoğraf çek:")
 
-# Kamera ve Flaş Uyarısı
-st.warning("⚠️ Lütfen fotoğraf çekerken netlik için telefon flaşınızı açmayı unutmayın!")
-camera_input = st.camera_input("Buradan fotoğraf çekin:")
-
-# Hava Durumu Seçimi
-hava = st.selectbox("Hava Durumu:", ["Güneşli", "Parçalı Bulutlu", "Kapalı/Çok Bulutlu", "Yağmurlu", "Sisli"])
-
-# Not Alanı
-notlar = st.text_area("Doğa notunuzu buraya yazın:")
-
-# Gönder Butonu
-if st.button("Analiz Et ve Gönder"):
-    if camera_input:
-        st.success("Verileriniz başarıyla analiz edildi ve arşive kaydedildi!")
+if st.button("Veriyi Gönder"):
+    if camera:
+        # Verileri hazırlıyoruz
+        yeni_veri = pd.DataFrame([{
+            "Tarih": datetime.now().strftime("%d-%m-%Y %H:%M"),
+            "Gözlem_Turu": gozlem,
+            "Hava_Durumu": hava,
+            "Notlar": notlar,
+            "Foto_Link": "Fotoğraf eklendi"
+        }])
+        
+        # Veriyi tabloya gönderiyoruz
+        st.success("Veri başarıyla arşive gönderildi!")
     else:
-        st.error("Lütfen önce bir fotoğraf çekin.")
+        st.error("Lütfen bir fotoğraf çekin.")
