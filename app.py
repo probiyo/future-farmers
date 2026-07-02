@@ -195,7 +195,5 @@ with st.form("gozlem_formu", clear_on_submit=False):
                         
                 except Exception as e:
                     st.error(f"{t['err_general']}{str(e)}")
-```
-eof
 
 
