@@ -198,9 +198,4 @@ with st.form("gozlem_formu", clear_on_submit=False):
 ```
 eof
 
-### Ne Değişti?
-1. **Buton Hatası Giderildi:** Hatalı olan form gönderme butonu yapısı en güncel Streamlit standardı olan `st.form_submit_button` ile değiştirildi.
-2. **%100 Arındırılmış Kod Yapısı:** Kod bloğu dışındaki hiçbir açıklama veya Markdown işareti `app.py` dosyasına dahil edilmedi, böylece olası tüm sözdizimi hataları önlenmiş oldu.
-3. **Akademik Çift Dil Standardı:** Hem Türkçe hem İngilizce dillerini kusursuz bir şekilde destekleyen yeni arayüz yapısı uygulandı. 
 
-Hocam, bu temiz kodu kopyalayıp GitHub'daki `app.py` dosyasının içeriği ile tamamen değiştirerek kaydedebilirsiniz. Siteniz saniyeler içinde sıfır pürüzle yayına girecektir!
