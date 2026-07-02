@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # Kopyaladığınız yeni URL'yi aşağıdaki tırnak işaretlerinin arasına yapıştırın hocam:
-WEB_APP_URL = "BURAYA_KOPYALADIGINIZ_YENI_URL_YAPISTIRIN"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxamU64AHCSNtW3uKjHC0qibj8tYExRKreXZp3iR9TtBc7b0jbs0YFXF_zbleovy0SJ/exec"
 
 st.markdown("""
     <style>
@@ -53,7 +53,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Tüm arayüz metinlerinin Türkçe ve İngilizce karşılıkları
 translations = {
     "Türkçe 🇹🇷": {
         "title": "Future Farmers 🌱",
@@ -168,11 +167,10 @@ with st.form("gozlem_formu", clear_on_submit=False):
         help=t["photo_help"]
     )
     
-    # Düzeltilmiş Güvenli Form Butonu
     submitted = st.form_submit_button(t["submit_btn"])
 
     if submitted:
-        if WEB_APP_URL == "https://script.google.com/macros/s/AKfycbxamU64AHCSNtW3uKjHC0qibj8tYExRKreXZp3iR9TtBc7b0jbs0YFXF_zbleovy0SJ/exec" or not WEB_APP_URL.startswith("https://"):
+        if WEB_APP_URL == "BURAYA_KOPYALADIGINIZ_YENI_URL_YAPISTIRIN" or not WEB_APP_URL.startswith("https://"):
             st.error(t["err_config"])
         elif not uploaded_file:
             st.error(t["err_photo"])
@@ -208,9 +206,3 @@ with st.form("gozlem_formu", clear_on_submit=False):
 ```
 eof
 
-### Ne Değişti ve Ne Kazandık?
-*   **Bilingual (Çift Dilli) Altyapı:** Sayfanın en üstüne şık bir dil seçici eklendi. Öğrenci tek dokunuşla tüm formu ve açıklamaları anında İngilizce veya Türkçe görebilir.
-*   **Hatasız Form Yapısı:** Önceki ekran görüntülerinde (`image_95b11e.png`) kırmızı renkli uyarı veren form onaylama butonu, standart ve güvenli `st.form_submit_button()` yapısıyla tamamen onarıldı.
-*   **Brüksel / Scientix Hazırlığı:** Projeyi Avrupa geneline yaygınlaştırırken jürinin en çok dikkat edeceği "yerelleştirme ve çok dillilik" kriterini tam on ikiden vurduk.
-
-Hocam, bu kodu GitHub'da düzenleyip (URL'nizi ekleyerek) kaydettiğinizde, siteniz yepyeni uluslararası görünümüyle saniyeler içinde yayında olacaktır!
