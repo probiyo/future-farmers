@@ -4,6 +4,7 @@ import json
 import base64
 from datetime import datetime
 
+# Page Configuration
 st.set_page_config(
     page_title="Future Farmers - Citizen Science Portal",
     page_icon="🌱",
@@ -205,4 +206,3 @@ with st.form("gozlem_formu", clear_on_submit=False):
                     st.error(f"{t['err_general']}{str(e)}")
 ```
 eof
-
