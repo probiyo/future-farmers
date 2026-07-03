@@ -3,7 +3,7 @@ import requests
 from datetime import datetime
 
 # --- AYARLAR ---
-WEB_APP_URL = "BURAYA_GOOGLE_APPS_SCRIPT_URLNIZI_YAZIN"
+WEB_APP_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/edit?gid=0#gid=0"
 
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
