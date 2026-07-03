@@ -129,4 +129,3 @@ with tab_analysis:
         st.info("E-Tablo verileri henüz yüklenemedi. İlk verinizi girerek sistemi aktive edebilirsiniz.")
 
 
-Başka bir isteğiniz var mı, yoksa 5E modeline geçelim mi? 🚀🌱
