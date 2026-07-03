@@ -9,8 +9,9 @@ from datetime import datetime
 st.set_page_config(page_title="Future Farmers - Portal", page_icon="🌱", layout="wide")
 
 # API ve E-Tablo Ayarları
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzpPAf0keTr8FLmsbdMuMRkVAZWyPKigwxTHSyZMiQRI2KSZXTFvWnXrEXsu15oFA_g/exec"
-DEFAULT_GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/edit?usp=sharing"
+# Lütfen buraya kendi Google Apps Script URL'nizi ve Sheet URL'nizi yapıştırın!
+WEB_APP_URL = "BURAYA_GOOGLE_APPS_SCRIPT_URLNIZI_YAZIN"
+DEFAULT_GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/edit?gid=0#gid=0"
 
 st.markdown("""
     <style>
@@ -35,9 +36,9 @@ translations = {
         "weather": "Hava Durumu:",
         "weather_options": ["Güneşli", "Parçalı Bulutlu", "Kapalı", "Yağmurlu", "Sisli"],
         "stress": "Bitki Sağlık ve Stres Skoru (1-5):",
-        "stress_help": "1: Çok Sağlıklı, 2: Hafif Stres, 3: Normal Gelişim, 4: Belirgin Stres, 5: Kritik Stres.",
-        "pests": "Görülen Zararlılar (İşaretleyin):",
-        "pest_options": ["Yok (Sağlıklı)", "Yeşil Çay Cücesi (Empoasca decipiens)", "Çay Akarı (Polyphagotarsonemus latus)", "Trips (Heliothrips haemorrhoidalis)", "Diğer / Tanımlanamadı"],
+        "stress_help": "1: Çok Sağlıklı, 2: Hafif Stres (Yaprak kenarı kuruması), 3: Normal Gelişim, 4: Belirgin Stres (Solgunluk), 5: Kritik Stres (Kuruma/Yoğun Parazit).",
+        "pests": "Görülen Zararlılar:",
+        "pest_options": ["Yok (Sağlıklı)", "Yeşil Çay Cücesi (Empoasca decipiens)", "Çay Akarı (Polyphagotarsonemus latus)", "Trips (Heliothrips haemorrhoidalis)", "Diğer"],
         "notes": "Gözlem Notlarınız:",
         "photo_upload_label": "Bitki Fotoğrafı Yükle:",
         "submit_btn": "Verileri Gönder 🚀",
@@ -59,49 +60,75 @@ with tab_form:
         hava_durumu = st.selectbox(t["weather"], t["weather_options"])
         stres_skoru = st.slider(t["stress"], 1, 5, 3, help=t["stress_help"])
         
-        # Zararlı Tespiti Bölümü
+        # Zararlı Teşhis Kılavuzu
         st.subheader("⚠️ Zararlı ve Hastalık Tespiti")
-        zararlilar = st.multiselect(t["pests"], t["pest_options"], default=["Yok (Sağlıklı)"])
+        with st.expander("📖 Zararlı Tanıma Rehberi (Görsel Destekli)"):
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Empoasca_decipiens.jpg/320px-Empoasca_decipiens.jpg", caption="Yeşil Çay Cücesi")
+            with col2:
+                st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Polyphagotarsonemus_latus.jpg/320px-Polyphagotarsonemus_latus.jpg", caption="Çay Akarı")
+            with col3:
+                st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Heliothrips_haemorrhoidalis.jpg/320px-Heliothrips_haemorrhoidalis.jpg", caption="Trips")
         
+        zararlilar = st.multiselect(t["pests"], t["pest_options"], default=["Yok (Sağlıklı)"])
         gozlem_notlari = st.text_area(t["notes"])
         uploaded_file = st.file_uploader(t["photo_upload_label"], type=["jpg", "png"])
+        
         submitted = st.form_submit_button(t["submit_btn"])
         
-        if submitted and uploaded_file:
-            with st.spinner("Gönderiliyor..."):
-                bytes_data = uploaded_file.read()
-                base64_image = base64.b64encode(bytes_data).decode('utf-8')
-                payload = {
-                    "Tarih": datetime.now().strftime("%d-%m-%Y"), 
-                    "Gozlem_Turu": gozlem_turu, 
-                    "Rakim": int(rakim), 
-                    "Hava_Durumu": hava_durumu, 
-                    "Stres_Skoru": int(stres_skoru),
-                    "Zararlilar": ", ".join(zararlilar),
-                    "Notlar": gozlem_notlari, 
-                    "Foto_Base64": base64_image
-                }
-                requests.post(WEB_APP_URL, json=payload)
-                st.success("Başarıyla kaydedildi!")
+        if submitted:
+            if uploaded_file is None:
+                st.warning("Lütfen bir bitki fotoğrafı yükleyin.")
+            else:
+                with st.spinner("Gönderiliyor..."):
+                    bytes_data = uploaded_file.read()
+                    base64_image = base64.b64encode(bytes_data).decode('utf-8')
+                    payload = {
+                        "Tarih": datetime.now().strftime("%d-%m-%Y"), 
+                        "Gozlem_Turu": gozlem_turu, 
+                        "Rakim": int(rakim), 
+                        "Hava_durumu": hava_durumu, 
+                        "Stres_Skoru": int(stres_skoru),
+                        "Zararlilar": ", ".join(zararlilar),
+                        "Notlar": gozlem_notlari, 
+                        "Foto_Base64": base64_image
+                    }
+                    try:
+                        requests.post(WEB_APP_URL, json=payload)
+                        st.success("Başarıyla kaydedildi!")
+                    except:
+                        st.error("Bağlantı hatası oluştu.")
 
 with tab_analysis:
-    csv_url = DEFAULT_GOOGLE_SHEET_URL.split("/edit")[0] + "/export?format=csv"
     try:
+        csv_url = DEFAULT_GOOGLE_SHEET_URL.split("/edit")[0] + "/export?format=csv"
         df = pd.read_csv(csv_url)
+        
+        # Veri temizleme
         df["Rakim"] = pd.to_numeric(df.iloc[:, 2], errors='coerce')
         df["Stres_Skoru"] = pd.to_numeric(df.iloc[:, 4], errors='coerce')
         
+        # Metrikler
         col1, col2, col3 = st.columns(3)
         col1.metric("Toplam Gözlem", len(df))
-        col2.metric("Ort. Rakım", f"{int(df['Rakim'].mean())} m")
-        col3.metric("Ort. Stres", f"{round(df['Stres_Skoru'].mean(), 1)} / 5")
+        col2.metric("Ort. Rakım", f"{int(df['Rakim'].mean())} m" if not df['Rakim'].isna().all() else "0 m")
+        col3.metric("Ort. Stres", f"{round(df['Stres_Skoru'].mean(), 1)} / 5" if not df['Stres_Skoru'].isna().all() else "0 / 5")
         
+        # Grafikler
         c1, c2 = st.columns(2)
+        c1.subheader("Rakım - Stres Korelasyonu")
         c1.scatter_chart(data=df, x="Rakim", y="Stres_Skoru")
+        c2.subheader("Hava Durumu - Stres Analizi")
         c2.bar_chart(data=df.groupby("Hava_Durumu")["Stres_Skoru"].mean())
         
         with st.expander(f"📖 {t['guide_title']}"):
             st.markdown(f"<div class='interpretation-card'>{t['guide_text']}</div>", unsafe_allow_html=True)
             
-    except:
-        st.error("E-Tablo verileri henüz yüklenemedi. Bağlantı ayarlarını kontrol edin.")
+    except Exception as e:
+        st.info("E-Tablo verileri henüz yüklenemedi. İlk verinizi girerek sistemi aktive edebilirsiniz.")
+```eof
+
+Hocam, bu haliyle projeniz artık **pedagojik olarak eksiksiz** bir "Vatandaş Bilimi" portalı oldu. Öğrencileriniz hem araştıracak, hem gözlemleyecek, hem de teşhis koyacak.
+
+Başka bir isteğiniz var mı, yoksa 5E modeline geçelim mi? 🚀🌱
