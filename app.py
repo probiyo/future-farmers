@@ -12,8 +12,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# Kopyaladığınız Google Apps Script URL'sini aşağıdaki tırnak işaretlerinin arasına yapıştırın hocam:
+# 1. Canlı Google Apps Script API adresimiz:
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzpPAf0keTr8FLmsbdMuMRkVAZWyPKigwxTHSyZMiQRI2KSZXTFvWnXrEXsu15oFA_g/exec"
+
+# 2. Canlı Google E-Tablo Paylaşım Linkimiz (Analiz panelinde otomatik görünmesi için):
+# NOT: E-tablonuzun paylaşım ayarını "Bağlantıyı bilen herkes görüntüleyebilir" yapmayı unutmayın!
+DEFAULT_GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/edit?usp=sharing"
 
 st.markdown("""
     <style>
@@ -95,7 +99,7 @@ translations = {
         "weather_options": ["Güneşli", "Parçalı Bulutlu", "Çok Bulutlu / Kapalı", "Yağmurlu", "Sisli", "Karlı"],
         "sec2_title": "### 2. Bitki Sağlığı ve Gözlemler / Health & Observations",
         "stress": "Bitki Sağlık ve Stres Skoru (1-5):",
-        "stress_help": "1: Çok Sağlıklı/Canlı, 3: Normal Gelişim, 5: Kritik Stres (Kuruma, hastalık veya yoğun parazit).",
+        "stress_help": "1: Çok Sağlıklı (Maksimum canlılık, bol taze sürgün), 2: Hafif Stres (Çok hafif renk açılması, gelişim durağanlığı), 3: Normal Gelişim (Standart sağlıklı seyir), 4: Belirgin Stres (Yaprak uçlarında kuruma, hafif sararma veya solma), 5: Kritik Stres (Yoğun kuruma, hastalık veya parazit istilası).",
         "notes": "Gözlem Notlarınız ve Bulgularınız:",
         "notes_placeholder": "Örn: Bu hafta yeni taze filizler (sürgünler) oluşmaya başladı. Yapraklarda lekelenme yok...",
         "photo_source": "Fotoğraf Ekleme Yöntemi:",
@@ -105,7 +109,7 @@ translations = {
         "photo_upload_label": "Bitki Fotoğrafı Yükle (JPEG/PNG):",
         "photo_help": "Doğru analiz için her hafta aynı açıdan ve mesafeden fotoğraf çekmeye özen gösterin.",
         "submit_btn": "Verileri Bilim Veritabanına Gönder 🚀",
-        "err_config": "⚠️ Sistem Ayarı Eksik: Lütfen kodun en üstündeki WEB_APP_URL değişkenine geçerli Apps Script adresinizi gömün!",
+        "err_config": "⚠️ Sistem Ayarı Eksik: Lütfen geçerli bir Apps Script adresi tanımlayın!",
         "err_photo": "⚠️ Lütfen bilimsel kanıt olarak bitkinizin bir fotoğrafını çekin veya yükleyin!",
         "spinner": "Verileriniz şifreleniyor ve veri havuzuna aktarılıyor...",
         "success": "🎉 Harika! Gözlem verileriniz başarıyla kaydedildi. Bir sonraki haftalık gözlemde görüşmek üzere vatandaş bilimci!",
@@ -117,12 +121,12 @@ translations = {
         "db_source_demo": "Örnek Proje Verileri (Demo Modu)",
         "db_source_live": "Canlı E-Tablo Verilerim (Google Sheets)",
         "db_sheet_url": "Google E-Tablo Paylaşım Linkini Girin:",
-        "db_sheet_help": "E-tablonuzu 'Bağlantıya sahip olan herkes görüntüleyebilir' şeklinde paylaşıp linkini buraya yapıştırın.",
+        "db_sheet_help": "E-tablonuzu 'Bağlantıyı sahip olan herkes görüntüleyebilir' şeklinde paylaşıp linkini buraya yapıştırın.",
         "stat_total": "Toplam Gözlem Sayısı",
         "stat_alt": "Ortalama Ölçülen Rakım",
         "stat_stress": "Ortalama Stres Skoru",
-        "chart_title_1": "⛰️ Rakıma Göre Bitki Stres Dağılımı (Korelasyon)",
-        "chart_title_2": "☁️ Hava Durumuna Göre Stres Seviyeleri",
+        "chart_title_1": "⛰| Rakıma Göre Bitki Stres Dağılımı (Korelasyon)",
+        "chart_title_2": "☁| Hava Durumuna Göre Stres Seviyeleri",
         "chart_desc_1": "Bu grafik, dikey yükseklik (rakım) artışının çay bitkisindeki stres skoru üzerindeki fizyolojik etkilerini analiz eder.",
         "chart_desc_2": "Farklı mikro-hava koşullarının bitki sağlığı üzerindeki anlık yansımalarını gösterir.",
         "table_title": "📋 Son Gözlem Kayıtları ve Saha Notları"
@@ -142,7 +146,7 @@ translations = {
         "weather_options": ["Sunny", "Partly Cloudy", "Overcast / Cloudy", "Rainy", "Foggy", "Snowy"],
         "sec2_title": "### 2. Plant Health and Observations",
         "stress": "Plant Health & Stress Score (1-5):",
-        "stress_help": "1: Very Healthy/Vigorous, 3: Normal Growth, 5: Critical Stress (Drying, disease, or pest infestation).",
+        "stress_help": "1: Excellent (Vibrant, lots of shoots), 2: Mild Stress (Slight discoloration, slow growth), 3: Moderate Health (Standard healthy growth), 4: High Stress (Dry tips, visible wilting), 5: Severe Stress (Advanced disease, critical loss risk).",
         "notes": "Your Observation Notes & Findings:",
         "notes_placeholder": "e.g., New fresh shoots started to form this week. No yellowing on leaves...",
         "photo_source": "Photo Adding Method:",
@@ -152,7 +156,7 @@ translations = {
         "photo_upload_label": "Upload Plant Photo (JPEG/PNG):",
         "photo_help": "For accurate analysis, try to take the photo from the same angle and distance each week.",
         "submit_btn": "Submit Data to Scientific Database 🚀",
-        "err_config": "⚠️ System Configuration Missing: Please embed your valid Apps Script address into the WEB_APP_URL variable!",
+        "err_config": "⚠️ System Configuration Missing: Please embed your valid Apps Script address!",
         "err_photo": "⚠️ Please upload or take a photo of your plant as scientific evidence!",
         "spinner": "Encrypting your data and transferring to the scientific database...",
         "success": "🎉 Fantastic! Your observation data has been successfully recorded. See you next week, citizen scientist!",
@@ -168,8 +172,8 @@ translations = {
         "stat_total": "Total Observations",
         "stat_alt": "Average Measured Altitude",
         "stat_stress": "Average Stress Score",
-        "chart_title_1": "⛰️ Plant Stress vs Altitude (Correlation Analysis)",
-        "chart_title_2": "☁️ Stress Levels by Weather Condition",
+        "chart_title_1": "⛰| Plant Stress vs Altitude (Correlation Analysis)",
+        "chart_title_2": "☁| Stress Levels by Weather Condition",
         "chart_desc_1": "This chart analyzes the physiological impact of vertical altitude increase on the tea plant's stress scores.",
         "chart_desc_2": "Displays the immediate reflection of different micro-weather conditions on overall plant health.",
         "table_title": "📋 Recent Observation Logs & Field Notes"
@@ -242,7 +246,7 @@ with tab_form:
         submitted = st.form_submit_button(t["submit_btn"])
 
         if submitted:
-            if WEB_APP_URL == "BURAYA_KOPYALADIGINIZ_YENI_URL_YAPISTIRIN" or not WEB_APP_URL.startswith("https://"):
+            if not WEB_APP_URL or WEB_APP_URL == "BURAYA_KOPYALADIGINIZ_YENI_URL_YAPISTIRIN" or not WEB_APP_URL.startswith("https://"):
                 st.error(t["err_config"])
             elif not uploaded_file:
                 st.error(t["err_photo"])
@@ -277,8 +281,9 @@ with tab_form:
 with tab_analysis:
     st.markdown(f"<p style='color:#4a5c53; font-size:1.05rem; margin-bottom: 20px;'>{t['db_intro']}</p>", unsafe_allow_html=True)
     
-    # Selection of Data Source
-    source_type = st.radio(t["db_source"], [t["db_source_demo"], t["db_source_live"]], horizontal=True)
+    # Varsayılan olarak canlı tablo linki varsa otomatik "Canlı E-Tablo" seçeneğini aktif et, yoksa demoyu seç
+    default_source_index = 1 if DEFAULT_GOOGLE_SHEET_URL != "BURAYA_GOOGLE_ETABLO_LINKINIZI_YAPISTIRIN" else 0
+    source_type = st.radio(t["db_source"], [t["db_source_demo"], t["db_source_live"]], index=default_source_index, horizontal=True)
     
     df = None
     
@@ -312,7 +317,10 @@ with tab_analysis:
         }
         df = pd.DataFrame(demo_data)
     else:
-        sheet_url = st.text_input(t["db_sheet_url"], placeholder="https://docs.google.com/spreadsheets/d/...", help=t["db_sheet_help"])
+        # En tepedeki default link varsa otomatik buraya yazar, yoksa boş input kutusu gösterir
+        initial_url_val = DEFAULT_GOOGLE_SHEET_URL if DEFAULT_GOOGLE_SHEET_URL != "BURAYA_GOOGLE_ETABLO_LINKINIZI_YAPISTIRIN" else ""
+        sheet_url = st.text_input(t["db_sheet_url"], value=initial_url_val, placeholder="https://docs.google.com/spreadsheets/d/...", help=t["db_sheet_help"])
+        
         if sheet_url:
             try:
                 # Converts default Google Sheet links into direct download links for instant pandas parsing
