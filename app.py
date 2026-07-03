@@ -6,7 +6,7 @@ import requests
 
 # --- AYARLAR ---
 # URL'yi tekrar kontrol edin: script.google.com/macros/s/..../exec formatında olmalı
-WEB_APP_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/edit?gid=0#gid=0"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzpPAf0keTr8FLmsbdMuMRkVAZWyPKigwxTHSyZMiQRI2KSZXTFvWnXrEXsu15oFA_g/exec"
 
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
