@@ -127,8 +127,6 @@ with tab_analysis:
             
     except Exception as e:
         st.info("E-Tablo verileri henüz yüklenemedi. İlk verinizi girerek sistemi aktive edebilirsiniz.")
-```eof
 
-Hocam, bu haliyle projeniz artık **pedagojik olarak eksiksiz** bir "Vatandaş Bilimi" portalı oldu. Öğrencileriniz hem araştıracak, hem gözlemleyecek, hem de teşhis koyacak.
 
 Başka bir isteğiniz var mı, yoksa 5E modeline geçelim mi? 🚀🌱
