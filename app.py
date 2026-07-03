@@ -22,19 +22,13 @@ translations = {
         "weather": "Hava Durumu",
         "weather_opts": ["Güneşli", "Parçalı Bulutlu", "Kapalı", "Yağmurlu", "Sisli", "Don", "Karlı"],
         "stress": "Bitki Sağlık ve Stres Skoru (1-5)",
-        "stress_meanings": {
-            1: "1: Çok Sağlıklı - Mükemmel Gelişim",
-            2: "2: Hafif Stres - İzlenmeli",
-            3: "3: Normal Gelişim - Stabil",
-            4: "4: Belirgin Stres - Müdahale Gerekebilir",
-            5: "5: Kritik Stres - Acil Müdahale!"
-        },
+        "stress_opts": {1: "1: Çok Sağlıklı - Mükemmel Gelişim", 2: "2: Hafif Stres - İzlenmeli", 3: "3: Normal Gelişim - Stabil", 4: "4: Belirgin Stres - Müdahale Gerekebilir", 5: "5: Kritik Stres - Acil Müdahale!"},
         "photo_method": "Fotoğraf Metodu",
         "upload_lbl": "Dosya Yükle",
         "camera_lbl": "Kamera ile Çek",
-        "pest_title": "⚠️ Zararlı Tanımlama Rehberi",
+        "pest_title": "⚠️ Zararlı Tanımlama Rehberi (Tıklayarak Araştır)",
         "pests": "Görülen Zararlılar",
-        "pest_opts": ["Yok (Sağlıklı)", "Yeşil Çay Cücesi", "Çay Akarı", "Trips"],
+        "pest_opts": ["Yok (Sağlıklı)", "Yeşil Çay Cücesi", "Çay Akarı", "Trips", "Vampir Kelebek (Metcalfa)"],
         "notes": "Gözlem Notlarınız",
         "submit": "Verileri Bilimsel Kayıta Ekle 🚀",
         "success": "Veriler başarıyla işlendi!"
@@ -49,19 +43,13 @@ translations = {
         "weather": "Weather Condition",
         "weather_opts": ["Sunny", "Partly Cloudy", "Cloudy", "Rainy", "Foggy", "Frost", "Snowy"],
         "stress": "Plant Health & Stress Score (1-5)",
-        "stress_meanings": {
-            1: "1: Very Healthy - Excellent Growth",
-            2: "2: Mild Stress - Monitor",
-            3: "3: Normal Growth - Stable",
-            4: "4: Significant Stress - Intervention Needed",
-            5: "5: Critical Stress - Emergency Action!"
-        },
+        "stress_opts": {1: "1: Very Healthy - Excellent Growth", 2: "2: Mild Stress - Monitor", 3: "3: Normal Growth - Stable", 4: "4: Significant Stress - Intervention Needed", 5: "5: Critical Stress - Emergency Action!"},
         "photo_method": "Photo Method",
         "upload_lbl": "Upload File",
         "camera_lbl": "Take with Camera",
-        "pest_title": "⚠️ Pest Identification Guide",
+        "pest_title": "⚠️ Pest Identification Guide (Click to Search)",
         "pests": "Pests Observed",
-        "pest_opts": ["None (Healthy)", "Green Leafhopper", "Tea Mite", "Thrips"],
+        "pest_opts": ["None (Healthy)", "Green Leafhopper", "Tea Mite", "Thrips", "Vampire Butterfly (Metcalfa)"],
         "notes": "Observation Notes",
         "submit": "Submit to Scientific Database 🚀",
         "success": "Data processed successfully!"
@@ -83,24 +71,28 @@ with tab1:
             alt = st.number_input(t["altitude"], 0, 2500)
             weather = st.selectbox(t["weather"], t["weather_opts"])
             
+            # Stres Skoru ve Sabit Tablo
             st.write(f"**{t['stress']}**")
             stres_val = st.select_slider("", options=[1, 2, 3, 4, 5], value=3)
-            st.info(t["stress_meanings"][stres_val])
+            st.info(t["stress_opts"][stres_val])
+            with st.expander("Tüm Ölçek (Reference Scale)"):
+                for i in range(1, 6):
+                    st.write(t["stress_opts"][i])
             
         with col2:
             photo_choice = st.radio(t["photo_method"], [t["upload_lbl"], t["camera_lbl"]], horizontal=True)
             uploaded_file = None
             if photo_choice == t["upload_lbl"]:
-                uploaded_file = st.file_uploader(t["upload_lbl"], type=['jpg', 'png'])
+                uploaded_file = st.file_uploader(t["upload_lbl"], type=['jpg', 'png', 'jpeg'])
             else:
                 uploaded_file = st.camera_input(t["camera_lbl"])
             
-            # ZARARLI GÖRSELLERİ (Stable Links)
-            with st.expander(t["pest_title"]):
-                p1, p2, p3 = st.columns(3)
-                p1.image("https://upload.wikimedia.org/wikipedia/commons/6/6f/Empoasca_decipiens.jpg", caption="Leafhopper")
-                p2.image("https://upload.wikimedia.org/wikipedia/commons/e/e0/Polyphagotarsonemus_latus.jpg", caption="Tea Mite")
-                p3.image("https://upload.wikimedia.org/wikipedia/commons/2/25/Heliothrips_haemorrhoidalis.jpg", caption="Thrips")
+            # Zararlı Tanımlama (Linkli Liste)
+            st.write(f"**{t['pest_title']}**")
+            for pest in t["pest_opts"]:
+                if pest != "Yok (Sağlıklı)" and pest != "None (Healthy)":
+                    search_url = f"https://www.google.com/search?q={pest}+Rize+çay+zararlısı"
+                    st.markdown(f"- [{pest}]({search_url})")
             
             zararlilar = st.multiselect(t["pests"], t["pest_opts"])
             notes = st.text_area(t["notes"])
@@ -111,7 +103,6 @@ with tab1:
             if uploaded_file is None:
                 st.warning("Lütfen fotoğraf ekleyin.")
             else:
-                # Veri Gönderimi
                 st.success(t["success"])
 
 with tab2:
