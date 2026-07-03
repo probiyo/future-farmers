@@ -3,7 +3,7 @@ import requests
 from datetime import datetime
 
 # --- AYARLAR ---
-WEB_APP_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/edit?gid=0#gid=0")
+WEB_APP_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/edit?gid=0#gid=0"
 
 # --- DİL SÖZLÜĞÜ ---
 translations = {
