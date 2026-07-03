@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # Kopyaladığınız Google Apps Script URL'sini aşağıdaki tırnak işaretlerinin arasına yapıştırın hocam:
-WEB_APP_URL = "BURAYA_KOPYALADIGINIZ_YENI_URL_YAPISTIRIN"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzpPAf0keTr8FLmsbdMuMRkVAZWyPKigwxTHSyZMiQRI2KSZXTFvWnXrEXsu15oFA_g/exec"
 
 st.markdown("""
     <style>
