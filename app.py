@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
-import requests 
+import requests
+import base64 # 1. EKLENEN SATIR: Base64 kütüphanesini ekliyoruz
 
 # --- AYARLAR ---
 # URL'yi tekrar kontrol edin: script.google.com/macros/s/..../exec formatında olmalı
@@ -70,6 +71,12 @@ with tab1:
         submitted = st.form_submit_button(t["submit"])
         
         if submitted:
+            # 2. EKLENEN/GÜNCELLENEN MANTIĞI:
+            foto_verisi = "Test_Verisi"
+            if uploaded_file is not None:
+                bytes_data = uploaded_file.getvalue()
+                foto_verisi = base64.b64encode(bytes_data).decode('utf-8')
+            
             data_to_send = {
                 "Tarih": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "Gozlem_Turu": obs_type,
@@ -77,7 +84,7 @@ with tab1:
                 "Hava_Durumu": weather,
                 "Stres_Skoru": stres_val,
                 "Notlar": notes,
-                "Foto_Base64": "Test_Verisi" 
+                "Foto_Base64": foto_verisi # Burayı dinamik hale getirdik
             }
             
             # Hata ayıklamalı gönderim
