@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
 # --- AYARLAR ---
 # Veri tablonuzun CSV linki
@@ -54,24 +53,12 @@ with tab2:
         # Veriyi çekiyoruz
         df = pd.read_csv(SHEET_URL)
         
-        # Sütun isimlerindeki boşlukları temizleyelim (hata almamak için)
+        # Sütun isimlerini temizle
         df.columns = df.columns.str.strip()
         
-        # Tabloyu gösteriyoruz
+        # Tabloyu göster
         st.dataframe(df)
         
-        # Grafiği çiziyoruz (image_398a3f.png'deki başlıklarla eşleşti)
-        # Sütun isimleri: "Rakim (m)" ve "Sağlık/Stres Skoru"
-        fig = px.scatter(
-            df, 
-            x="Rakim (m)", 
-            y="Sağlık/Stres Skoru", 
-            color="Hava Durumu", 
-            title="Rakım (m) - Stres Skoru Korelasyonu",
-            template="plotly_white"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-        
     except Exception as e:
-        st.warning("Veriler yüklenirken bir hata oluştu. Lütfen Google Sheets'in herkese açık olduğundan emin ol.")
+        st.warning("Veriler yüklenirken bir hata oluştu. Lütfen Google Sheets'in herkese açık olduğundan emin olun.")
         st.write("Hata detayı:", e)
