@@ -2,14 +2,13 @@ import streamlit as st
 import pandas as pd
 import requests
 import base64
-import json
 from datetime import datetime
 
+# Sayfa Ayarları
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
-# Google Sheets Bağlantısı (Apps Script URL'si)
-# Sadece bu kısmı, Apps Script'ten 'Dağıt' dedikten sonra çıkan URL ile değiştir.
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec" 
+# URL'yi senin verdiğin ile güncelledim
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
 
 translations = {
     "Türkçe 🇹🇷": {
@@ -18,13 +17,16 @@ translations = {
         "analytics": "Bilimsel Analiz",
         "submit": "Verileri Bilimsel Kayıta Ekle 🚀",
         "success": "Veriler başarıyla işlendi!",
-        "error": "Veri gönderilemedi. Lütfen Apps Script URL'sini kontrol edin.",
+        "error": "Veri gönderilemedi. Lütfen tarayıcı izinlerini kontrol edin.",
         "obs_type": "Gözlem Nesnesi",
+        "options": ["Çay", "Böcekler", "Diğer"],
         "bug_type": "Böcek Türü",
+        "bug_options": ["Yeşil Cırcır Böceği", "Kırmızı Örümcek", "Diğer"],
         "alt": "Rakım (Metre)",
         "stress": "Bitki Sağlık ve Stres Skoru (1-5)",
         "stress_help": "1: Çok Sağlıklı, 5: Çok Stresli",
         "weather": "Hava Durumu",
+        "weather_options": ["Güneşli", "Kapalı", "Yağmurlu"],
         "camera": "Kamera ile Çek",
         "upload": "Veya Dosya Yükle",
         "notes": "Gözlem Notlarınız"
@@ -35,13 +37,16 @@ translations = {
         "analytics": "Scientific Analysis",
         "submit": "Submit to Scientific Database 🚀",
         "success": "Data processed successfully!",
-        "error": "Data could not be sent. Please check your Apps Script URL.",
+        "error": "Data could not be sent. Please check browser permissions.",
         "obs_type": "Observation Type",
+        "options": ["Tea", "Pests", "Other"],
         "bug_type": "Pest Type",
+        "bug_options": ["Green Grasshopper", "Red Spider", "Other"],
         "alt": "Altitude (Meters)",
         "stress": "Plant Health & Stress Score (1-5)",
         "stress_help": "1: Very Healthy, 5: Very Stressed",
         "weather": "Weather",
+        "weather_options": ["Sunny", "Cloudy", "Rainy"],
         "camera": "Take Photo",
         "upload": "Or Upload File",
         "notes": "Observation Notes"
@@ -58,17 +63,18 @@ with tab1:
     with st.form("pro_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            obs_type = st.selectbox(t["obs_type"], ["Çay", "Böcekler", "Diğer"])
+            obs_type = st.selectbox(t["obs_type"], t["options"])
             
             bug_type = "Yok"
-            if obs_type == "Böcekler":
-                bug_type = st.selectbox(t["bug_type"], ["Yeşil Cırcır Böceği", "Kırmızı Örümcek", "Diğer"])
+            # Böcek seçimi görünürlük mantığı
+            if obs_type in ["Böcekler", "Pests"]:
+                bug_type = st.selectbox(t["bug_type"], t["bug_options"])
             
             alt = st.number_input(t["alt"], 0, 2500)
             stres_val = st.select_slider(t["stress"], options=[1, 2, 3, 4, 5], help=t["stress_help"])
             
         with col2:
-            weather = st.selectbox(t["weather"], ["Güneşli", "Kapalı", "Yağmurlu"])
+            weather = st.selectbox(t["weather"], t["weather_options"])
             uploaded_file = st.camera_input(t["camera"])
             file_upload = st.file_uploader(t["upload"], type=['jpg', 'jpeg', 'png'])
             notes = st.text_area(t["notes"])
@@ -84,7 +90,7 @@ with tab1:
             
             data = {
                 "Tarih": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Gozlem_Turu": f"{obs_type} ({bug_type})" if obs_type == "Böcekler" else obs_type,
+                "Gozlem_Turu": f"{obs_type} ({bug_type})" if bug_type != "Yok" else obs_type,
                 "Rakim": alt,
                 "Hava_Durumu": weather,
                 "Stres_Skoru": stres_val,
@@ -103,7 +109,6 @@ with tab1:
 
 with tab2:
     st.subheader(t["analytics"])
-    # Not: SHEET_URL'i de kendi Apps Script'inize göre güncellemeyi unutmayın
     SHEET_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/gviz/tq?tqx=out:csv&sheet=Sayfa1"
     try:
         df = pd.read_csv(SHEET_URL)
