@@ -1,14 +1,14 @@
 import streamlit as st
 import pandas as pd
 import requests
-import json
 import base64
+import json
 from datetime import datetime
 
 # --- AYARLAR ---
 # Veri tablonuzun CSV linki
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/gviz/tq?tqx=out:csv&sheet=Sayfa1"
-# Google Apps Script Web App URL (BURAYA KENDİ URL'Nİ YAZ)
+# Google Apps Script Web App URL (Bu URL veri gönderimi için şart!)
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
 
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
@@ -21,7 +21,16 @@ translations = {
         "analytics": "Bilimsel Analiz",
         "submit": "Verileri Bilimsel Kayıta Ekle 🚀",
         "success": "Veriler başarıyla işlendi!",
-        "error": "Veri gönderilemedi. Lütfen internet bağlantınızı ve Apps Script URL'sini kontrol edin."
+        "error": "Veri gönderilemedi. Lütfen Apps Script URL'sini kontrol edin.",
+        "obs_type": "Gözlem Nesnesi",
+        "bug_type": "Böcek Türü",
+        "alt": "Rakım (Metre)",
+        "stress": "Bitki Sağlık ve Stres Skoru (1-5)",
+        "stress_help": "1: Çok Sağlıklı, 5: Çok Stresli",
+        "weather": "Hava Durumu",
+        "camera": "Kamera ile Çek",
+        "upload": "Veya Dosya Yükle",
+        "notes": "Gözlem Notlarınız"
     },
     "English 🇬🇧": {
         "title": "Future Farmers 🌱",
@@ -29,7 +38,16 @@ translations = {
         "analytics": "Scientific Analysis",
         "submit": "Submit to Scientific Database 🚀",
         "success": "Data processed successfully!",
-        "error": "Data could not be sent. Please check your connection and Apps Script URL."
+        "error": "Data could not be sent. Please check your Apps Script URL.",
+        "obs_type": "Observation Type",
+        "bug_type": "Pest Type",
+        "alt": "Altitude (Meters)",
+        "stress": "Plant Health & Stress Score (1-5)",
+        "stress_help": "1: Very Healthy, 5: Very Stressed",
+        "weather": "Weather",
+        "camera": "Take Photo",
+        "upload": "Or Upload File",
+        "notes": "Observation Notes"
     }
 }
 
@@ -43,27 +61,34 @@ with tab1:
     with st.form("pro_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            obs_type = st.selectbox("Gözlem Nesnesi", ["Çay", "Böcekler", "Diğer"])
-            alt = st.number_input("Rakım (Metre)", 0, 2500)
-            stres_val = st.select_slider("Bitki Sağlık ve Stres Skoru (1-5)", options=[1, 2, 3, 4, 5], help="1: Çok Sağlıklı, 5: Çok Stresli")
+            obs_type = st.selectbox(t["obs_type"], ["Çay", "Böcekler", "Diğer"])
+            if obs_type == "Böcekler":
+                bug_type = st.selectbox(t["bug_type"], ["Yeşil Cırcır Böceği", "Kırmızı Örümcek", "Diğer"])
+            else:
+                bug_type = "Yok"
+            alt = st.number_input(t["alt"], 0, 2500)
+            stres_val = st.select_slider(t["stress"], options=[1, 2, 3, 4, 5], help=t["stress_help"])
         with col2:
-            weather = st.selectbox("Hava Durumu", ["Güneşli", "Kapalı", "Yağmurlu"])
-            uploaded_file = st.camera_input("Kamera ile Çek")
-            notes = st.text_area("Gözlem Notlarınız")
+            weather = st.selectbox(t["weather"], ["Güneşli", "Kapalı", "Yağmurlu"])
+            # Hem kamera hem dosya yükleme eklendi
+            uploaded_file = st.camera_input(t["camera"])
+            file_upload = st.file_uploader(t["upload"], type=['jpg', 'jpeg', 'png'])
+            notes = st.text_area(t["notes"])
 
         submitted = st.form_submit_button(t["submit"])
         
         if submitted:
-            # Fotoğrafı base64 formatına çevir
+            # Fotoğraf işleme (Kamera veya Yükleme)
+            image_to_process = uploaded_file if uploaded_file else file_upload
             foto_base64 = "Test_Verisi"
-            if uploaded_file is not None:
-                foto_bytes = uploaded_file.getvalue()
+            if image_to_process is not None:
+                foto_bytes = image_to_process.getvalue()
                 foto_base64 = base64.b64encode(foto_bytes).decode('utf-8')
             
-            # Gönderilecek veri paketi
+            # Veri paketi
             data = {
                 "Tarih": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Gozlem_Turu": obs_type,
+                "Gozlem_Turu": f"{obs_type} ({bug_type})" if obs_type == "Böcekler" else obs_type,
                 "Rakim": alt,
                 "Hava_Durumu": weather,
                 "Stres_Skoru": stres_val,
@@ -72,6 +97,7 @@ with tab1:
             }
             
             try:
+                # Veriyi Google Sheets'e gönder
                 response = requests.post(WEB_APP_URL, json=data)
                 if response.status_code == 200:
                     st.success(t["success"])
@@ -83,15 +109,10 @@ with tab1:
 with tab2:
     st.subheader(t["analytics"])
     try:
-        # Veriyi çekiyoruz
+        # Veriyi CSV'den çek ve göster
         df = pd.read_csv(SHEET_URL)
-        
-        # Sütun isimlerini temizle
         df.columns = df.columns.str.strip()
-        
-        # Tabloyu göster
         st.dataframe(df)
-        
     except Exception as e:
-        st.warning("Veriler yüklenirken bir hata oluştu. Lütfen Google Sheets'in herkese açık olduğundan emin olun.")
-        st.write("Hata detayı:", e)
+        st.warning("Veriler yüklenirken bir hata oluştu.")
+        st.write("Hata:", e)
