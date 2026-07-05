@@ -1,9 +1,11 @@
 import streamlit as st
 import requests
 import base64
+import pandas as pd
 from datetime import datetime
 
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
+SHEET_ID = "1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No"
 
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
@@ -25,7 +27,8 @@ translations = {
         "notes": "Gözlem Notlarınız",
         "submit": "Verileri Bilimsel Kayıta Ekle 🚀",
         "success": "Veriler başarıyla Google Sheets'e gönderildi!",
-        "error": "Bağlantı hatası: "
+        "error": "Bağlantı hatası: ",
+        "load_err": "Veriler yükleniyor... Tablonuzun paylaşıma açık olduğundan emin olun."
     },
     "English 🇬🇧": {
         "title": "Future Farmers 🌱",
@@ -44,7 +47,8 @@ translations = {
         "notes": "Observation Notes",
         "submit": "Submit to Scientific Database 🚀",
         "success": "Data sent successfully to Google Sheets!",
-        "error": "Connection error: "
+        "error": "Connection error: ",
+        "load_err": "Loading data... Please ensure your sheet is public."
     }
 }
 
@@ -57,56 +61,50 @@ tab1, tab2 = st.tabs([t["entry"], t["analytics"]])
 with tab1:
     with st.form("pro_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
-        
         with col1:
             obs_type = st.selectbox(t["obs_type"], t["obs_opts"])
             alt = st.number_input(t["altitude"], 0, 2500)
             weather = st.selectbox(t["weather"], t["weather_opts"])
             stres_val = st.select_slider(t["stress_title"], options=[1, 2, 3, 4, 5], value=3)
-
         with col2:
             photo_choice = st.radio(t["photo_method"], [t["upload_lbl"], t["camera_lbl"]], horizontal=True)
-            uploaded_file = None
-            if photo_choice == t["upload_lbl"]:
-                uploaded_file = st.file_uploader(t["upload_lbl"], type=['jpg', 'png', 'jpeg'])
-            else:
-                uploaded_file = st.camera_input(t["camera_lbl"])
-            
+            uploaded_file = st.camera_input(t["camera_lbl"]) if photo_choice == t["camera_lbl"] else st.file_uploader(t["upload_lbl"], type=['jpg', 'png', 'jpeg'])
             notes = st.text_area(t["notes"])
-
         submitted = st.form_submit_button(t["submit"])
-        
-        if submitted:
-            if uploaded_file is None:
-                st.warning("Lütfen fotoğraf ekleyin veya çekin.")
-            else:
-                with st.spinner("Veri Google'a gönderiliyor..."):
-                    # Fotoğrafı Base64 formatına çevir
-                    bytes_data = uploaded_file.getvalue()
-                    foto_base64 = base64.b64encode(bytes_data).decode('utf-8')
-                    
-                    # Gönderilecek veri paketi
-                    data_to_send = {
-                        "Tarih": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "Gozlem_Turu": obs_type,
-                        "Rakim": alt,
-                        "Hava_Durumu": weather,
-                        "Stres_Skoru": stres_val,
-                        "Notlar": notes,
-                        "Foto_Base64": foto_base64
-                    }
-                    
-                    try:
-                        # Google Apps Script'e gönder
-                        response = requests.post(WEB_APP_URL, json=data_to_send, timeout=15)
-                        
-                        if response.status_code == 200:
-                            st.success(t["success"])
-                        else:
-                            st.error(f"Hata {response.status_code}: {response.text}")
-                    except Exception as e:
-                        st.error(f"{t['error']} {str(e)}")
+        if submitted and uploaded_file:
+            with st.spinner("Veri gönderiliyor..."):
+                foto_base64 = base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
+                data_to_send = {"Tarih": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Gozlem_Turu": obs_type, "Rakim": alt, "Hava_Durumu": weather, "Stres_Skoru": stres_val, "Notlar": notes, "Foto_Base64": foto_base64}
+                try:
+                    response = requests.post(WEB_APP_URL, json=data_to_send, timeout=15)
+                    st.success(t["success"]) if response.status_code == 200 else st.error(f"Hata {response.status_code}")
+                except Exception as e:
+                    st.error(f"{t['error']} {str(e)}")
 
 with tab2:
     st.subheader(t["analytics"])
-    st.info("Verileriniz Google Sheets'e aktarıldığında burada görünecektir.")
+    try:
+        # Google Sheets'ten CSV olarak veriyi çek
+        url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
+        df = pd.read_csv(url)
+        
+        # Veri temizliği
+        df.columns = df.columns.str.strip()
+        
+        st.write("### 📊 Genel Veri Özeti")
+        st.dataframe(df.tail(10)) 
+        
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.write("#### 🏔️ Rakım - Stres İlişkisi")
+            # Rakım ve Stres skoru arasındaki ilişki
+            st.scatter_chart(df, x="Rakim", y="Stres_Skoru")
+        
+        with col_b:
+            st.write("#### 🌤️ Hava Durumu Dağılımı")
+            # Hava durumu kategorilerinin sayımı
+            if "Hava_Durumu" in df.columns:
+                st.bar_chart(df["Hava_Durumu"].value_counts())
+            
+    except Exception as e:
+        st.info(t["load_err"])
