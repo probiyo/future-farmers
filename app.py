@@ -1,113 +1,38 @@
-import streamlit as st
-import pandas as pd
-import requests
-import base64
-import json
-from datetime import datetime
-
-st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
-
-# Google Sheets Bağlantısı (Apps Script URL'si)
-# Sadece bu kısmı, Apps Script'ten 'Dağıt' dedikten sonra çıkan URL ile değiştir.
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec" 
-
-translations = {
-    "Türkçe 🇹🇷": {
-        "title": "Future Farmers 🌱",
-        "entry": "Veri Giriş Portalı",
-        "analytics": "Bilimsel Analiz",
-        "submit": "Verileri Bilimsel Kayıta Ekle 🚀",
-        "success": "Veriler başarıyla işlendi!",
-        "error": "Veri gönderilemedi. Lütfen Apps Script URL'sini kontrol edin.",
-        "obs_type": "Gözlem Nesnesi",
-        "bug_type": "Böcek Türü",
-        "alt": "Rakım (Metre)",
-        "stress": "Bitki Sağlık ve Stres Skoru (1-5)",
-        "stress_help": "1: Çok Sağlıklı, 5: Çok Stresli",
-        "weather": "Hava Durumu",
-        "camera": "Kamera ile Çek",
-        "upload": "Veya Dosya Yükle",
-        "notes": "Gözlem Notlarınız"
-    },
-    "English 🇬🇧": {
-        "title": "Future Farmers 🌱",
-        "entry": "Data Entry Portal",
-        "analytics": "Scientific Analysis",
-        "submit": "Submit to Scientific Database 🚀",
-        "success": "Data processed successfully!",
-        "error": "Data could not be sent. Please check your Apps Script URL.",
-        "obs_type": "Observation Type",
-        "bug_type": "Pest Type",
-        "alt": "Altitude (Meters)",
-        "stress": "Plant Health & Stress Score (1-5)",
-        "stress_help": "1: Very Healthy, 5: Very Stressed",
-        "weather": "Weather",
-        "camera": "Take Photo",
-        "upload": "Or Upload File",
-        "notes": "Observation Notes"
-    }
+// 1. Sağlık kontrolü (Sitenin aktif olup olmadığını test eder)
+function doGet() {
+  return ContentService.createTextOutput("Future Farmers API Aktif! Veri göndermeye hazırım.");
 }
 
-lang = st.sidebar.selectbox("Language / Dil", ["Türkçe 🇹🇷", "English 🇬🇧"])
-t = translations[lang]
-
-st.title(t["title"])
-tab1, tab2 = st.tabs([t["entry"], t["analytics"]])
-
-with tab1:
-    with st.form("pro_form", clear_on_submit=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            obs_type = st.selectbox(t["obs_type"], ["Çay", "Böcekler", "Diğer"])
-            
-            bug_type = "Yok"
-            if obs_type == "Böcekler":
-                bug_type = st.selectbox(t["bug_type"], ["Yeşil Cırcır Böceği", "Kırmızı Örümcek", "Diğer"])
-            
-            alt = st.number_input(t["alt"], 0, 2500)
-            stres_val = st.select_slider(t["stress"], options=[1, 2, 3, 4, 5], help=t["stress_help"])
-            
-        with col2:
-            weather = st.selectbox(t["weather"], ["Güneşli", "Kapalı", "Yağmurlu"])
-            uploaded_file = st.camera_input(t["camera"])
-            file_upload = st.file_uploader(t["upload"], type=['jpg', 'jpeg', 'png'])
-            notes = st.text_area(t["notes"])
-
-        submitted = st.form_submit_button(t["submit"])
-        
-        if submitted:
-            image_to_process = uploaded_file if uploaded_file else file_upload
-            foto_base64 = "Test_Verisi"
-            if image_to_process is not None:
-                foto_bytes = image_to_process.getvalue()
-                foto_base64 = base64.b64encode(foto_bytes).decode('utf-8')
-            
-            data = {
-                "Tarih": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Gozlem_Turu": f"{obs_type} ({bug_type})" if obs_type == "Böcekler" else obs_type,
-                "Rakim": alt,
-                "Hava_Durumu": weather,
-                "Stres_Skoru": stres_val,
-                "Notlar": notes,
-                "Foto_Base64": foto_base64
-            }
-            
-            try:
-                response = requests.post(WEB_APP_URL, json=data)
-                if response.status_code == 200:
-                    st.success(t["success"])
-                else:
-                    st.error(t["error"])
-            except Exception as e:
-                st.error(f"{t['error']} Detay: {e}")
-
-with tab2:
-    st.subheader(t["analytics"])
-    # Not: SHEET_URL'i de kendi Apps Script'inize göre güncellemeyi unutmayın
-    SHEET_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/gviz/tq?tqx=out:csv&sheet=Sayfa1"
-    try:
-        df = pd.read_csv(SHEET_URL)
-        df.columns = df.columns.str.strip()
-        st.dataframe(df)
-    except Exception as e:
-        st.warning("Veriler henüz yüklenemedi veya boş.")
+// 2. Veri alma ve işleme
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    
+    // TABLO ID (Sabit - Dokunma)
+    var sheetId = "1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No"; 
+    var sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
+    
+    // KLASOR ID (Bunu az önce kopyaladığın ID ile değiştir!)
+    var folderId = "1k0bgpAnXJpRoBaxByBVbJhE7NhH2c3-2"; 
+    var folder = DriveApp.getFolderById(folderId);
+    
+    // Resim İşlemleri
+    var fileUrl = "Resim yüklenmedi";
+    if (data.Foto_Base64 !== "Test_Verisi") {
+      var contentType = "image/jpeg";
+      var decodedImg = Utilities.base64Decode(data.Foto_Base64);
+      var blob = Utilities.newBlob(decodedImg, contentType, "Gozlem_" + data.Tarih.replace(/[: ]/g, "_") + ".jpg");
+      var file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      fileUrl = file.getUrl();
+    }
+    
+    // Veriyi tabloya ekle
+    sheet.appendRow([data.Tarih, data.Gozlem_Turu, data.Rakim, data.Hava_Durumu, data.Stres_Skoru, data.Notlar, fileUrl]);
+    
+    return ContentService.createTextOutput("Başarılı").setMimeType(ContentService.MimeType.TEXT);
+    
+  } catch(error) {
+    return ContentService.createTextOutput("Hata: " + error.toString()).setMimeType(ContentService.MimeType.TEXT);
+  }
+}
