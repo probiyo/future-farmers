@@ -3,7 +3,7 @@ import requests
 from datetime import datetime
 
 # --- AYARLAR ---
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwgOzWR6wQxNvRpT6X5lcHwkF5w3OF83d1b1HV1yblcqmXk0YlNOpeoXO-KBYepbdAa/exec"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwIBKELGo3eQ2Dbiw9H1XNajKTphDjxRDzybyOy-J18HBLWkR0kdrMiwX7tvZogJ-HW/exec"
 
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
