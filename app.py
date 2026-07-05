@@ -1,4 +1,3 @@
-// 1. Sağlık kontrolü (Sitenin aktif olup olmadığını test eder)
 function doGet() {
   return ContentService.createTextOutput("Future Farmers API Aktif! Veri göndermeye hazırım.");
 }
