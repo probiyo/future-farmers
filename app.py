@@ -7,7 +7,7 @@ from datetime import datetime
 # Sayfa Ayarları
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
-# URL'yi senin verdiğin ile güncelledim
+# URL Sabitlendi
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
 
 translations = {
@@ -17,7 +17,7 @@ translations = {
         "analytics": "Bilimsel Analiz",
         "submit": "Verileri Bilimsel Kayıta Ekle 🚀",
         "success": "Veriler başarıyla işlendi!",
-        "error": "Veri gönderilemedi. Lütfen tarayıcı izinlerini kontrol edin.",
+        "error": "Veri gönderilemedi. Lütfen internet bağlantınızı kontrol edin.",
         "obs_type": "Gözlem Nesnesi",
         "options": ["Çay", "Böcekler", "Diğer"],
         "bug_type": "Böcek Türü",
@@ -28,7 +28,7 @@ translations = {
         "weather": "Hava Durumu",
         "weather_options": ["Güneşli", "Kapalı", "Yağmurlu"],
         "camera": "Kamera ile Çek",
-        "upload": "Veya Dosya Yükle",
+        "upload": "Dosya Yükle",
         "notes": "Gözlem Notlarınız"
     },
     "English 🇬🇧": {
@@ -37,7 +37,7 @@ translations = {
         "analytics": "Scientific Analysis",
         "submit": "Submit to Scientific Database 🚀",
         "success": "Data processed successfully!",
-        "error": "Data could not be sent. Please check browser permissions.",
+        "error": "Data could not be sent. Please check your internet connection.",
         "obs_type": "Observation Type",
         "options": ["Tea", "Pests", "Other"],
         "bug_type": "Pest Type",
@@ -48,7 +48,7 @@ translations = {
         "weather": "Weather",
         "weather_options": ["Sunny", "Cloudy", "Rainy"],
         "camera": "Take Photo",
-        "upload": "Or Upload File",
+        "upload": "Upload File",
         "notes": "Observation Notes"
     }
 }
@@ -62,22 +62,27 @@ tab1, tab2 = st.tabs([t["entry"], t["analytics"]])
 with tab1:
     with st.form("pro_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
+        
         with col1:
             obs_type = st.selectbox(t["obs_type"], t["options"])
             
+            # Böcek seçimi mantığı
             bug_type = "Yok"
-            # Böcek seçimi görünürlük mantığı
-            if obs_type in ["Böcekler", "Pests"]:
+            if obs_type == "Böcekler" or obs_type == "Pests":
                 bug_type = st.selectbox(t["bug_type"], t["bug_options"])
             
             alt = st.number_input(t["alt"], 0, 2500)
             stres_val = st.select_slider(t["stress"], options=[1, 2, 3, 4, 5], help=t["stress_help"])
-            
+            notes = st.text_area(t["notes"])
+
         with col2:
             weather = st.selectbox(t["weather"], t["weather_options"])
-            uploaded_file = st.camera_input(t["camera"])
-            file_upload = st.file_uploader(t["upload"], type=['jpg', 'jpeg', 'png'])
-            notes = st.text_area(t["notes"])
+            
+            st.subheader(t["camera"])
+            uploaded_file = st.camera_input(t["camera"], label_visibility="hidden")
+            
+            st.subheader(t["upload"])
+            file_upload = st.file_uploader(t["upload"], type=['jpg', 'jpeg', 'png'], label_visibility="hidden")
 
         submitted = st.form_submit_button(t["submit"])
         
