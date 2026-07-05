@@ -35,7 +35,7 @@ with tab1:
     with st.form("pro_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            obs_type = st.selectbox("Gözlem Nesnesi", ["Çay", "Diğer"])
+            obs_type = st.selectbox("Gözlem Nesnesi", ["Çay", "Böcekler", "Diğer"])
             alt = st.number_input("Rakım (Metre)", 0, 2500)
             stres_val = st.select_slider("Bitki Sağlık ve Stres Skoru (1-5)", options=[1, 2, 3, 4, 5])
         with col2:
