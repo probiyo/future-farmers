@@ -54,15 +54,18 @@ with tab2:
         # Veriyi çekiyoruz
         df = pd.read_csv(SHEET_URL)
         
+        # Sütun isimlerindeki boşlukları temizleyelim (hata almamak için)
+        df.columns = df.columns.str.strip()
+        
         # Tabloyu gösteriyoruz
         st.dataframe(df)
         
-        # Grafiği çiziyoruz (image_397ee1.png'deki başlıklarla eşleşti)
-        # Sütun isimleri: Rakim (m) ve Stres_Skoru
+        # Grafiği çiziyoruz (image_398a3f.png'deki başlıklarla eşleşti)
+        # Sütun isimleri: "Rakim (m)" ve "Sağlık/Stres Skoru"
         fig = px.scatter(
             df, 
             x="Rakim (m)", 
-            y="Stres_Skoru", 
+            y="Sağlık/Stres Skoru", 
             color="Hava Durumu", 
             title="Rakım (m) - Stres Skoru Korelasyonu",
             template="plotly_white"
