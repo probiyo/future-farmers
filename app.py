@@ -20,7 +20,7 @@ translations = {
         "obs_type": "Gözlem Nesnesi (Ne Gözlemliyorsunuz?)",
         "options": ["Çay", "Böcekler", "Diğer"],
         "bug_type": "Böcek Türünü Seçiniz",
-        "bug_options": ["Yeşil Cırcır Böceği (Tettigonia viridissima)", "Kırmızı Örümcek (Tetranychus urticae)", "Çay Güvesi (Parametriotes theae)", "Diğer"],
+        "bug_options": ["Vampir Kelebek (Ricania simulans)", "Çay Filiz Güvesi (Parametriotes theae)", "Çay Koşnili (Chloropulvinaria floccifera)", "Mor Çay Akarı (Calacarus carinatus)", "Diğer"],
         "alt": "Rakım (Deniz Seviyesinden Yükseklik - Metre)",
         "stress": "Bitki Sağlık ve Stres Skoru (1-5 Arası Değerlendirin)",
         "weather": "Hava Durumu",
@@ -39,7 +39,7 @@ translations = {
         "obs_type": "Observation Type",
         "options": ["Tea", "Pests", "Other"],
         "bug_type": "Select Pest Type",
-        "bug_options": ["Green Grasshopper (Tettigonia viridissima)", "Red Spider Mite (Tetranychus urticae)", "Tea Moth (Parametriotes theae)", "Other"],
+        "bug_options": ["Vampire Bug (Ricania simulans)", "Tea Shoot Borer (Parametriotes theae)", "Tea Scale Insect (Chloropulvinaria floccifera)", "Purple Tea Mite (Calacarus carinatus)", "Other"],
         "alt": "Altitude (Meters)",
         "stress": "Plant Health & Stress Score (1-5)",
         "weather": "Weather",
@@ -70,17 +70,19 @@ with tab1:
             # Böcek tanıma rehberi linkleri
             if lang == "Türkçe 🇹🇷":
                 st.markdown("""
-                **🔍 Böcek Tanımlama Rehberi (Görseller için tıklayın):**
-                * [Yeşil Cırcır Böceği (Tettigonia viridissima)](https://www.google.com/search?q=Tettigonia+viridissima&tbm=isch)
-                * [Kırmızı Örümcek (Tetranychus urticae)](https://www.google.com/search?q=Tetranychus+urticae+çay&tbm=isch)
-                * [Çay Güvesi (Parametriotes theae)](https://www.google.com/search?q=Parametriotes+theae&tbm=isch)
+                **🔍 Rize Çay Zararlıları Tanımlama Rehberi (Görseller için tıklayın):**
+                * [Vampir Kelebek (Ricania simulans)](https://www.google.com/search?q=Ricania+simulans+çay+zararlısı&tbm=isch)
+                * [Çay Filiz Güvesi (Parametriotes theae)](https://www.google.com/search?q=Parametriotes+theae+çay+kurdu&tbm=isch)
+                * [Çay Koşnili (Chloropulvinaria floccifera)](https://www.google.com/search?q=Çay+koşnili+Chloropulvinaria+floccifera&tbm=isch)
+                * [Mor Çay Akarı (Calacarus carinatus)](https://www.google.com/search?q=Mor+çay+akarı+Calacarus+carinatus&tbm=isch)
                 """)
             else:
                 st.markdown("""
-                **🔍 Pest Identification Guide (Click for images):**
-                * [Green Grasshopper (Tettigonia viridissima)](https://www.google.com/search?q=Tettigonia+viridissima&tbm=isch)
-                * [Red Spider Mite (Tetranychus urticae)](https://www.google.com/search?q=Tetranychus+urticae&tbm=isch)
-                * [Tea Moth (Parametriotes theae)](https://www.google.com/search?q=Parametriotes+theae&tbm=isch)
+                **🔍 Rize Tea Pests Identification Guide (Click for images):**
+                * [Vampire Bug (Ricania simulans)](https://www.google.com/search?q=Ricania+simulans&tbm=isch)
+                * [Tea Shoot Borer (Parametriotes theae)](https://www.google.com/search?q=Parametriotes+theae&tbm=isch)
+                * [Tea Scale Insect (Chloropulvinaria floccifera)](https://www.google.com/search?q=Chloropulvinaria+floccifera&tbm=isch)
+                * [Purple Tea Mite (Calacarus carinatus)](https://www.google.com/search?q=Calacarus+carinatus&tbm=isch)
                 """)
         else:
             st.caption("ℹ️ Not: Böcek türü menüsünü görmek için yukarıdan 'Böcekler'i seçmelisiniz.")
