@@ -9,7 +9,7 @@ from datetime import datetime
 # Veri tablonuzun CSV linki
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1Nd6NLzE74TFiJv1QSnnsWC2lqFt5bwKf2qaKEX6C2No/gviz/tq?tqx=out:csv&sheet=Sayfa1"
 # Google Apps Script Web App URL (Bu URL veri gönderimi için şart!)
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
+WEB_APP_URL = "BURAYA_APPS_SCRIPT_URL_YAPISTIR"
 
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
@@ -62,15 +62,17 @@ with tab1:
         col1, col2 = st.columns(2)
         with col1:
             obs_type = st.selectbox(t["obs_type"], ["Çay", "Böcekler", "Diğer"])
+            # Böcek mantığını geri getirdim
             if obs_type == "Böcekler":
                 bug_type = st.selectbox(t["bug_type"], ["Yeşil Cırcır Böceği", "Kırmızı Örümcek", "Diğer"])
             else:
                 bug_type = "Yok"
             alt = st.number_input(t["alt"], 0, 2500)
+            # Slider açıklamalarını geri getirdim
             stres_val = st.select_slider(t["stress"], options=[1, 2, 3, 4, 5], help=t["stress_help"])
         with col2:
             weather = st.selectbox(t["weather"], ["Güneşli", "Kapalı", "Yağmurlu"])
-            # Hem kamera hem dosya yükleme eklendi
+            # Kamera ve Upload butonlarını geri getirdim
             uploaded_file = st.camera_input(t["camera"])
             file_upload = st.file_uploader(t["upload"], type=['jpg', 'jpeg', 'png'])
             notes = st.text_area(t["notes"])
