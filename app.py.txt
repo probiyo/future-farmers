@@ -1,0 +1,43 @@
+import streamlit as st
+import requests
+import base64
+import json
+from datetime import datetime # Eksik olan import eklendi
+
+st.title("🌱 Future Farmers Pro")
+
+# Form dışında kamera tetikleyicisi
+img_file = st.camera_input("Kamera ile Çek")
+
+with st.form("veri_formu"):
+    alt = st.number_input("Rakım", 0)
+    stres = st.slider("Stres Skoru", 1, 5)
+    notlar = st.text_area("Notlar")
+    
+    submitted = st.form_submit_button("Gönder")
+    
+    if submitted:
+        if img_file is None:
+            st.error("Önce fotoğraf çekmelisiniz!")
+        else:
+            # Görüntüyü base64'e çevir
+            bytes_data = img_file.getvalue()
+            b64_str = base64.b64encode(bytes_data).decode()
+            
+            payload = {
+                "tarih": str(datetime.now()),
+                "tur": "Çay",
+                "rakim": alt,
+                "hava": "Güneşli",
+                "stres": stres,
+                "notlar": notlar,
+                "photo": b64_str
+            }
+            
+            # Buraya kendi Google Apps Script URL'nizi yapıştıracaksınız
+            response = requests.post("URL_BURAYA", json=payload)
+            
+            if response.status_code == 200:
+                st.success("Veri başarıyla kaydedildi!")
+            else:
+                st.error("Bağlantı hatası. Lütfen Apps Script URL'sini kontrol edin.")
