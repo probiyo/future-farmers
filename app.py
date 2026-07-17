@@ -7,7 +7,6 @@ import base64
 
 st.set_page_config(page_title="Future Farmers Pro", layout="wide")
 
-# Google Apps Script URL
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
@@ -19,10 +18,10 @@ with tab1:
     with st.form("gozlem_formu"):
         tarih = st.text_input("Tarih", value=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
         gozlem_turu = st.selectbox("Gözlem Türü", ["Çay Bitkisi", "Böcek Analizi", "Toprak Analizi"])
-        rakim = st.number_input("Rakım (m)", min_value=0, max_value=2000, value=200)
+        rakim = st.number_input("Rakım", min_value=0, max_value=2000, value=200)
         hava = st.selectbox("Hava Durumu", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Don", "Karlı"])
         stres = st.slider("Stres Skoru (1: Sağlıklı, 5: Kritik)", 1, 5, 1)
-        notlar = st.text_area("Gözlem Notları")
+        notlar = st.text_area("Notlar")
         foto = st.camera_input("Bitki Fotoğrafı Çek")
         
         submitted = st.form_submit_button("Veriyi Gönder")
@@ -50,25 +49,15 @@ with tab1:
 with tab2:
     st.header("Ekolojik Analiz Havuzu")
     try:
-        # CSV Verisini çekiyoruz
         df = pd.read_csv(SHEET_CSV_URL)
-        
-        # Sütun isimlerini tablonuzdaki başlıklarla eşleştiriyoruz
-        rename_map = {
-            "Rakım (m)": "Rakim", 
-            "Sağlık/Stres Skoru": "Stres_Skoru",
-            "Hava Durumu": "Hava_Durumu",
-            "Gozlem Notları": "Notlar" 
-        }
-        df = df.rename(columns=rename_map)
-        
-        if not df.empty and "Rakim" in df.columns:
+        # Artık rename yapmamıza gerek yok, tabloyu yukarıdaki gibi düzenlediyseniz direkt çalışır:
+        if not df.empty:
             fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
                              size="Stres_Skoru", title="Rakım vs. Stres Korelasyonu",
                              hover_data=["Notlar"])
             st.plotly_chart(fig, use_container_width=True)
             st.dataframe(df)
         else:
-            st.info("Tablo şu an boş veya sütun başlıkları eşleşmiyor. Lütfen kontrol edin.")
+            st.info("Tablo şu an boş.")
     except Exception as e:
         st.error(f"Veri havuzu yüklenirken bir hata oluştu: {e}")
