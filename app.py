@@ -71,8 +71,8 @@ with tab1:
             
         notlar = st.text_area(c["notes"])
         
-        # Kamera küçültme: sütun içine alarak genişliği sınırladık
-        col_cam, col_empty = st.columns([1, 2])
+        # Kamera küçültme: Sütun kullanarak alanı daralttık
+        col_cam, col_empty = st.columns([1, 4])
         with col_cam:
             foto = st.camera_input(c["photo"])
         
@@ -97,13 +97,13 @@ with tab1:
 
     st.markdown(f"### {c['pest_title']}")
     
-    # Görselleri kaldırdık, sadece metin ve link tabanlı rehber
+    # Sadece linklerden oluşan güncel liste
     pest_list = [
-        ("Sarı Çay Akarı", "https://cay.rteu.edu.tr/tr/arastirma/zararlilar/sari-cay-akari"),
-        ("Çay Koşnili", "https://cay.rteu.edu.tr/tr/arastirma/zararlilar/cay-kosnili"),
-        ("Çay Filiz Güvesi", "https://cay.rteu.edu.tr/tr/arastirma/zararlilar/cay-filiz-guvesi"),
-        ("Vampir Kelebek (Ricania)", "https://www.tarimorman.gov.tr/Konular/Bitkisel-Uretim/Bitki-Sagligi/Ricania-Simulans"),
-        ("Kahverengi Kokarca", "https://www.tarimorman.gov.tr/Konular/Bitkisel-Uretim/Bitki-Sagligi/Kahverengi-Kokarca")
+        ("Sarı Çay Akarı", "https://www.koppert.com.tr/bitki-zararlilari/oeruemcek-akarlari-ve-diger-akarlar/sebzelerde-sari-cay-akari/?utm_source=copilot.com"),
+        ("Çay Koşnili", "https://agrobaseapp.com/turkey/pest/cay-kosnili"),
+        ("Çay Filiz Güvesi", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
+        ("Vampir Kelebek (Ricania)", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
+        ("Kahverengi Kokarca", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx?TermStoreId=368e785b-af33-487d-a98d-c11d5495130b&TermSetId=279e10a1-a60d-421b-9d0c-a06a9ce2ebfa&TermId=2b9226ff-4a3b-4ab9-a217-c4482dc84dfa&UrlSuffix=25/Kahverengi-Kokarca")
     ]
     
     for name, url in pest_list:
