@@ -37,14 +37,14 @@ with tab1:
                 "Tarih": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "Gozlem_Turu": gozlem_turu,
                 "Rakim": rakim,
-                "Hava_Durumu": hava, # Tablo ile uyumlu hale getirildi
-                "Stres_Skoru": stres, # Tablo ile uyumlu hale getirildi
+                "Hava_Durumu": hava,
+                "Stres_Skoru": stres,
                 "Notlar": notlar,
                 "PH": ph_degeri,
                 "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
             }
             try:
-                requests.post(WEB_APP_URL, json=payload, timeout=10)
+                requests.post(WEB_APP_URL, json=payload, timeout=15)
                 st.success("Veri başarıyla gönderildi!")
             except Exception as e:
                 st.error(f"Bağlantı hatası: {e}")
@@ -53,6 +53,14 @@ with tab2:
     st.header("📈 Ekolojik Analiz")
     try:
         df = pd.read_csv(SHEET_CSV_URL)
+        
+        # Sütunları sayısal tipe zorla, hata olanları boş bırak
+        df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
+        df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
+        df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
+        
+        df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
+        
         if not df.empty:
             fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
             st.plotly_chart(fig1, use_container_width=True)
@@ -61,7 +69,6 @@ with tab2:
                 ph_df = df[df["PH"] > 0]
                 if not ph_df.empty:
                     st.subheader("🧪 pH - Stres Korelasyonu")
-                    # pH verisini görselleştirme
                     fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", 
                                       title="pH Değerinin Stres Skoruna Etkisi",
                                       labels={"PH": "Toprak pH Değeri", "Stres_Skoru": "Stres Skoru (1-5)"})
@@ -70,11 +77,9 @@ with tab2:
                     # pH istatistikleri
                     col1, col2 = st.columns(2)
                     col1.metric("Ortalama pH", round(ph_df["PH"].mean(), 2))
-                    col2.metric("Stresli Bitki Sayısı", len(ph_df[ph_df["Stres_Skoru"] >= 4]))
+                    col2.metric("Stresli Bitki Sayısı", int((ph_df["Stres_Skoru"] >= 4).sum()))
                 else:
                     st.info("pH verisi henüz yeterli değil.")
-            else:
-                st.warning("pH sütunu veri tabanında bulunamadı.")
         else:
             st.warning("Henüz veri bulunmuyor.")
     except Exception as e:
