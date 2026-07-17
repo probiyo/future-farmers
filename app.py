@@ -1,82 +1,67 @@
 import streamlit as st
 import pandas as pd
-import requests
-import datetime
-import base64
 import plotly.express as px
+import requests
+import json
+from datetime import datetime
+import base64
 
-st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
+st.set_page_config(page_title="Future Farmers Pro", layout="wide")
 
-# Google Apps Script URL - Güncellediğinizden emin olun!
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
+# WEB_APP_URL: Google Apps Script URL'nizi buraya yapıştırın
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx_a3Xq1j8Z4kL5RzG6L2bK7sW9pD4O_eG5Jk8tI7d_vE_Xp_w/exec"
+SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
-translations = {
-    "Türkçe 🇹🇷": {
-        "title": "Future Farmers 🌱", "entry": "Veri Giriş Portalı", "analytics": "Bilimsel Analiz",
-        "submit": "Verileri Bilimsel Kayıta Ekle 🚀", "success": "Veri başarıyla bilimsel havuza işlendi!",
-        "error": "Veri gönderilemedi. Lütfen bağlantınızı kontrol edin.", "obs_type": "Gözlem Türü", "options": ["Çay", "Böcekler", "Diğer"],
-        "bug_type": "Böcek Türü", "bug_options": ["Vampir Kelebek", "Çay Filiz Güvesi", "Çay Koşnili", "Mor Çay Akarı", "Diğer"],
-        "alt": "Rakım (m)", "stress": "Sağlık/Stres Skoru (1-5)",
-        "weather": "Hava Durumu", "weather_options": ["Güneşli", "Bulutlu", "Kapalı", "Yağmurlu", "Sisli", "Don", "Karlı"],
-        "camera_title": "📸 Fotoğraf Çek", "upload_title": "📁 Veya Yükle", "notes": "Notlarınız"
-    }
-}
-
-t = translations["Türkçe 🇹🇷"]
-
-tab1, tab2 = st.tabs([t["entry"], t["analytics"]])
+st.title("🌱 Future Farmers: Vatandaş Bilimi Portalı")
+tab1, tab2 = st.tabs(["📊 Veri Girişi", "📈 Ekolojik Analiz"])
 
 with tab1:
-    col1, col2 = st.columns(2)
-    with col1:
-        obs_type = st.selectbox(t["obs_type"], t["options"])
-        bug_type = st.selectbox(t["bug_type"], t["bug_options"]) if obs_type == "Böcekler" else "Yok"
-        alt = st.number_input(t["alt"], 0, 2500, 0)
-        stres_val = st.select_slider(t["stress"], [1, 2, 3, 4, 5])
-        notes = st.text_area(t["notes"])
-    with col2:
-        weather = st.selectbox(t["weather"], t["weather_options"])
-        camera_photo = st.camera_input(t["camera_title"])
-        uploaded_photo = st.file_uploader(t["upload_title"], type=['jpg', 'png'])
-
-    if st.button(t["submit"]):
-        final_photo = camera_photo or uploaded_photo
-        foto_base64 = base64.b64encode(final_photo.getvalue()).decode("utf-8") if final_photo else "Test_Verisi"
+    st.header("Saha Gözlem Formu")
+    with st.form("gozlem_formu"):
+        tarih = st.text_input("Tarih", value=datetime.now().strftime("%Y-%m-%d %H:%M"))
+        gozlem_turu = st.selectbox("Gözlem Türü", ["Çay Bitkisi", "Toprak Analizi", "Mikroklima"])
+        rakim = st.number_input("Rakım (m)", min_value=0, max_value=2000, value=200)
+        hava = st.selectbox("Hava Durumu", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli"])
+        stres = st.slider("Stres Skoru (1: Sağlıklı, 5: Kritik)", 1, 5, 1)
+        notlar = st.text_area("Gözlem Notları")
+        foto = st.camera_input("Bitki Fotoğrafı Çek")
         
-        payload = {
-            "Tarih": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Gozlem_Turu": obs_type if bug_type == "Yok" else f"Böcek: {bug_type}",
-            "Rakim": alt,
-            "Hava_Durumu": weather,
-            "Stres_Skoru": stres_val,
-            "Notlar": notes,
-            "Foto_Base64": foto_base64
-        }
-        try:
-            response = requests.post(WEB_APP_URL, json=payload, timeout=10)
-            if response.status_code == 200:
-                st.success(t["success"])
-            else:
-                st.error(t["error"])
-        except Exception as e:
-            st.error(f"Hata: {e}")
+        submitted = st.form_submit_button("Veriyi Gönder")
+        
+        if submitted:
+            foto_base64 = "Test_Verisi"
+            if foto is not None:
+                foto_base64 = base64.b64encode(foto.read()).decode('utf-8')
+            
+            payload = {
+                "Tarih": tarih, "Gozlem_Turu": gozlem_turu, "Rakim": rakim,
+                "Hava_Durumu": hava, "Stres_Skoru": stres, "Notlar": notlar,
+                "Foto_Base64": foto_base64
+            }
+            
+            try:
+                response = requests.post(WEB_APP_URL, json=payload)
+                if response.text == "Başarılı":
+                    st.success("Veri başarıyla kaydedildi!")
+                else:
+                    st.error(f"Hata: {response.text}")
+            except Exception as e:
+                st.error(f"Bağlantı hatası: {e}")
 
 with tab2:
-    st.header(t["analytics"])
-    # Google Sheets Yayınla linki (CSV) - Mevcut URL'niz
-    SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
-    
+    st.header("Ekolojik Analiz Havuzu")
     try:
         df = pd.read_csv(SHEET_CSV_URL)
+        # Sütun isimlerini eşleştirme
+        df = df.rename(columns={"Rakım (m)": "Rakim", "Hava Durumu": "Hava_Durumu"})
         
-        # TABLONUZDAKİ İSİMLERE GÖRE GÜNCELLEDİK:
-        df = df.rename(columns={
-            "Rakim (m)": "Rakim", 
-            "Sağlık/Stres Skoru": "Stres_Skoru"
-        })
-        
-        fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", title="Rakım vs. Stres Korelasyonu")
-        st.plotly_chart(fig, use_container_width=True)
-        st.dataframe(df)
+        if not df.empty:
+            fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
+                             size="Stres_Skoru", title="Rakım vs. Stres Korelasyonu",
+                             hover_data=["Notlar"])
+            st.plotly_chart(fig, use_container_width=True)
+            st.dataframe(df)
+        else:
+            st.info("Tablo şu an boş, lütfen saha verisi ekleyin.")
     except Exception as e:
-        st.info(f"Veri havuzu yükleniyor veya boş... Hata detay: {e}")
+        st.info("Veri havuzu yükleniyor veya bağlantı hatası oluştu.")
