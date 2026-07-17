@@ -8,7 +8,7 @@ import plotly.express as px
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
 # Google Apps Script URL - Güncellediğinizden emin olun!
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz1-G1Q6w1lZt12mJ2Q47PZ1L1S2V1I0r5w5t1w5w5w5w5w5w5w5w5w5/exec"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
 
 translations = {
     "Türkçe 🇹🇷": {
