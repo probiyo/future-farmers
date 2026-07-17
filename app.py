@@ -8,48 +8,27 @@ import plotly.express as px
 # 1. STREAMING_CHUNK:Konfigürasyon ve Başlatma
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
-# LÜTFEN GOOGLE APPS SCRIPT LİNKİNİZİ BURAYA YAPIŞTIRIN
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
 
-# 2. STREAMING_CHUNK:Çeviri Sözlüğü ve Arayüz Metinleri
+# 2. STREAMING_CHUNK:Çeviri Sözlüğü
 translations = {
     "Türkçe 🇹🇷": {
-        "title": "Future Farmers 🌱",
-        "entry": "Veri Giriş Portalı",
-        "analytics": "Bilimsel Analiz",
-        "submit": "Verileri Bilimsel Kayıta Ekle 🚀",
-        "success": "Veri başarıyla bilimsel havuza işlendi!",
-        "error": "Veri gönderilemedi.",
-        "obs_type": "Gözlem Nesnesi (Ne Gözlemliyorsunuz?)",
-        "options": ["Çay", "Böcekler", "Diğer"],
-        "bug_type": "Böcek Türünü Seçiniz",
-        "bug_options": ["Vampir Kelebek", "Çay Filiz Güvesi", "Çay Koşnili", "Mor Çay Akarı", "Diğer"],
-        "alt": "Rakım (m)",
-        "stress": "Bitki Sağlık ve Stres Skoru (1-5)",
-        "weather": "Hava Durumu",
-        "weather_options": ["Güneşli", "Bulutlu", "Kapalı", "Yağmurlu", "Sisli", "Don", "Karlı"],
-        "camera_title": "📸 Kamera ile Fotoğraf Çek",
-        "upload_title": "📁 Veya Galeriden Yükle",
-        "notes": "Gözlem Notlarınız"
+        "title": "Future Farmers 🌱", "entry": "Veri Giriş Portalı", "analytics": "Bilimsel Analiz",
+        "submit": "Verileri Bilimsel Kayıta Ekle 🚀", "success": "Veri başarıyla bilimsel havuza işlendi!",
+        "error": "Veri gönderilemedi.", "obs_type": "Gözlem Nesnesi", "options": ["Çay", "Böcekler", "Diğer"],
+        "bug_type": "Böcek Türü", "bug_options": ["Vampir Kelebek", "Çay Filiz Güvesi", "Çay Koşnili", "Mor Çay Akarı", "Diğer"],
+        "alt": "Rakım (m)", "stress": "Bitki Sağlık ve Stres Skoru (1-5)",
+        "weather": "Hava Durumu", "weather_options": ["Güneşli", "Bulutlu", "Kapalı", "Yağmurlu", "Sisli", "Don", "Karlı"],
+        "camera_title": "📸 Kamera ile Fotoğraf Çek", "upload_title": "📁 Veya Galeriden Yükle", "notes": "Gözlem Notlarınız"
     },
     "English 🇬🇧": {
-        "title": "Future Farmers 🌱",
-        "entry": "Data Entry Portal",
-        "analytics": "Scientific Analysis",
-        "submit": "Submit to Scientific Database 🚀",
-        "success": "Data processed successfully!",
-        "error": "Data could not be sent.",
-        "obs_type": "Observation Type",
-        "options": ["Tea", "Pests", "Other"],
-        "bug_type": "Select Pest Type",
-        "bug_options": ["Vampire Bug", "Tea Shoot Borer", "Tea Scale Insect", "Purple Tea Mite", "Other"],
-        "alt": "Altitude (m)",
-        "stress": "Plant Health & Stress Score (1-5)",
-        "weather": "Weather",
-        "weather_options": ["Sunny", "Cloudy", "Overcast", "Rainy", "Foggy", "Frost", "Snowy"],
-        "camera_title": "📸 Take Photo with Camera",
-        "upload_title": "📁 Or Upload from Gallery",
-        "notes": "Observation Notes"
+        "title": "Future Farmers 🌱", "entry": "Data Entry Portal", "analytics": "Scientific Analysis",
+        "submit": "Submit to Scientific Database 🚀", "success": "Data processed successfully!",
+        "error": "Data could not be sent.", "obs_type": "Observation Type", "options": ["Tea", "Pests", "Other"],
+        "bug_type": "Select Pest Type", "bug_options": ["Vampire Bug", "Tea Shoot Borer", "Tea Scale Insect", "Purple Tea Mite", "Other"],
+        "alt": "Altitude (m)", "stress": "Plant Health & Stress Score (1-5)",
+        "weather": "Weather", "weather_options": ["Sunny", "Cloudy", "Overcast", "Rainy", "Foggy", "Frost", "Snowy"],
+        "camera_title": "📸 Take Photo with Camera", "upload_title": "📁 Or Upload from Gallery", "notes": "Observation Notes"
     }
 }
 
@@ -57,7 +36,6 @@ st.sidebar.title("Language / Dil")
 lang = st.sidebar.selectbox("", ["Türkçe 🇹🇷", "English 🇬🇧"])
 t = translations[lang]
 
-# 3. STREAMING_CHUNK:Veri Giriş Sekmesi ve Form Mantığı
 tab1, tab2 = st.tabs([t["entry"], t["analytics"]])
 
 with tab1:
@@ -103,7 +81,13 @@ with tab2:
 
     try:
         df = load_data()
-        df.columns = df.columns.str.strip()
+        # TABLO BAŞLIKLARINI EŞLEŞTİRME:
+        # Kodun anlayacağı isimlere, tablodaki gerçek isimleri atıyoruz
+        df = df.rename(columns={
+            "Rakım (m)": "Rakim",
+            "Sağlık/Stres Skoru": "Stres_Skoru"
+        })
+        
         df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
         df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
         df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
@@ -112,4 +96,5 @@ with tab2:
         st.plotly_chart(fig, use_container_width=True)
         st.dataframe(df, use_container_width=True)
     except Exception as e:
-        st.info("Veri havuzu güncelleniyor, lütfen bekleyin...")
+        st.info("Veri havuzu güncelleniyor veya tablo başlıkları eşleşmiyor...")
+        st.error(f"Teknik Hata: {e}")
