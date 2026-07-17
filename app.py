@@ -9,7 +9,7 @@ import base64
 st.set_page_config(page_title="Future Farmers Pro", layout="wide")
 
 # WEB_APP_URL: Google Apps Script URL'nizi buraya yapıştırın
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx_a3Xq1j8Z4kL5RzG6L2bK7sW9pD4O_eG5Jk8tI7d_vE_Xp_w/exec"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
 st.title("🌱 Future Farmers: Vatandaş Bilimi Portalı")
