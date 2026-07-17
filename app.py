@@ -194,11 +194,13 @@ with tab2:
             # VERİ TEMİZLİĞİ: Sütun adlarındaki olası boşlukları ve Türkçe karakter hatalarını otomatik düzelt
             df.columns = df.columns.str.strip()
             df = df.rename(columns={
-                'Rakım': 'Rakim', 
-                'Stres Skoru': 'Stres_Skoru', 
-                'Hava Durumu': 'Hava_Durumu', 
-                'Gözlem Türü': 'Gozlem_Turu',
-                'Tarih ': 'Tarih'
+                'Rakım (m)': 'Rakim', 
+                'Sağlık/Stres Skoru': 'Stres_Skoru', 
+                'Hava_Durumu': 'Hava_Durumu', 
+                'Gözlem_Türü': 'Gozlem_Turu',
+                'Tarih': 'Tarih',
+                'Gözlem Notları': 'Notlar',
+                'Fotoğraf': 'Fotograf_Linki'
             })
 
             # Sütunları sayısal değerlere dönüştür ve boş verileri temizle
