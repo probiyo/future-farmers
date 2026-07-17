@@ -39,19 +39,24 @@ tab1, tab2 = st.tabs([t["tab1"], t["tab2"]])
 
 with tab1:
     st.header(t["form"])
-    with st.form("gozlem_formu"):
-        tarih = datetime.datetime.now().isoformat() # ISO formatı ile saat düzeltildi
-        gozlem_turu = st.selectbox(t["type"], ["Çay Bitkisi", "Böcek Analizi", "Toprak Analizi"])
+    
+    # Form dışı seçim alanı (Dinamik görünüm için)
+    gozlem_turu = st.selectbox(t["type"], ["Çay Bitkisi", "Böcek Analizi", "Toprak Analizi"])
+    
+    with st.form("gozlem_formu", clear_on_submit=True):
+        tarih = datetime.datetime.now().isoformat()
         rakim = st.number_input(t["alt"], 0, 2000, 200)
         hava = st.selectbox(t["weather"], ["Güneşli", "Bulutlu", "Yağmurlu", "Don", "Karlı"])
         
+        # pH Alanı: Sadece Toprak Analizi ise görünür
         ph_degeri = None
         if gozlem_turu == "Toprak Analizi":
             ph_degeri = st.number_input(t["ph"], 0.0, 14.0, 7.0)
             
+        # Böcek Rehberi: Sadece Böcek Analizi ise görünür
         if gozlem_turu == "Böcek Analizi":
-            st.info("Rize Çay Böcekleri Rehberi:")
-            st.markdown("- [Çay Kurdu (Lepidoptera)](https://www.google.com/search?q=çay+kurdu+zararlısı) | [Bilimsel: Eupoecilia ambiguella]")
+            st.info(f"🔍 {t['insect']}")
+            st.markdown("- [Çay Kurdu (Eupoecilia ambiguella)](https://www.google.com/search?q=çay+kurdu+zararlısı)")
             st.markdown("- [Çay Çekirgesi (Empoasca decipiens)](https://www.google.com/search?q=çay+çekirgesi)")
         
         stres = st.slider(t["stress"], 1, 5, 1)
@@ -59,17 +64,30 @@ with tab1:
         foto = st.camera_input(t["photo"])
         
         submitted = st.form_submit_button(t["submit"])
+        
         if submitted:
-            payload = {"Tarih": tarih, "Gozlem_Turu": gozlem_turu, "Rakim": rakim, "Hava": hava, "Stres": stres, "Notlar": notlar, "PH": ph_degeri, "Foto": "Test" if not foto else base64.b64encode(foto.read()).decode()}
+            payload = {
+                "Tarih": tarih, "Gozlem_Turu": gozlem_turu, "Rakim": rakim, 
+                "Hava": hava, "Stres": stres, "Notlar": notlar, 
+                "PH": ph_degeri, "Foto": "Test" if not foto else base64.b64encode(foto.read()).decode()
+            }
             try:
                 requests.post(WEB_APP_URL, json=payload, timeout=10)
-                st.success("Başarılı!")
-            except: st.error("Bağlantı hatası.")
+                st.success("Veri başarıyla gönderildi!")
+            except: 
+                st.error("Bağlantı hatası. Lütfen API URL'sini kontrol edin.")
 
 with tab2:
     st.header(t["tab2"])
     try:
         df = pd.read_csv(SHEET_CSV_URL)
-        fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım vs. Stres")
-        st.plotly_chart(fig, use_container_width=True)
-    except: st.info("Veri bekleniyor.")
+        # Sütun isimlerini kontrol ederek görselleştirme
+        if not df.empty:
+            fig = px.scatter(df, x="Rakim", y="Stres", color="Hava", size="Stres", title="Rakım vs. Stres Analizi")
+            st.plotly_chart(fig, use_container_width=True)
+            st.write("### 💡 Veri Yorumu")
+            st.info("Grafik, yüksek rakımlı bölgelerdeki bitkilerin stres skorlarının sahil şeridine göre değişimini göstermektedir. Veriler, Rize'nin mikroklimatik yapısını anlamamıza yardımcı olur.")
+        else:
+            st.warning("Henüz veri bulunmuyor.")
+    except Exception as e:
+        st.info("Veri havuzuna bağlanılamadı. Lütfen Google Sheets'in 'Herkes görüntüleyebilir' modunda olduğundan emin olun.")
