@@ -5,12 +5,11 @@ import datetime
 import base64
 import plotly.express as px
 
-# 1. STREAMING_CHUNK:Konfigürasyon ve Başlatma
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
+# Google Apps Script'ten aldığın güncel URL'yi buraya yaz
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz1-G1Q6w1lZt12mJ2Q47PZ1L1S2V1I0r5w5t1w5w5w5w5w5w5w5w5w5/exec"
 
-# 2. STREAMING_CHUNK:Çeviri Sözlüğü
 translations = {
     "Türkçe 🇹🇷": {
         "title": "Future Farmers 🌱", "entry": "Veri Giriş Portalı", "analytics": "Bilimsel Analiz",
@@ -66,13 +65,16 @@ with tab1:
         }
         try:
             response = requests.post(WEB_APP_URL, json=payload)
-            st.success(t["success"]) if response.status_code == 200 else st.error(t["error"])
+            if response.status_code == 200:
+                st.success(t["success"])
+            else:
+                st.error(t["error"])
         except Exception as e:
             st.error(f"Bağlantı Hatası: {e}")
 
-# 4. STREAMING_CHUNK:Veri Analiz ve Görselleştirme Motoru
 with tab2:
     st.header(t["analytics"])
+    # Buraya kendi Google Sheets Yayınla linkini yapıştır
     SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
     
     @st.cache_data(ttl=60)
@@ -81,30 +83,19 @@ with tab2:
 
     try:
         df = load_data()
-        
-        # TABLO BAŞLIKLARINI EŞLEŞTİRME (Google Sheets'teki isimlere göre yeniden adlandırıyoruz)
+        # Sütun isimlerini eşleştiriyoruz
         df = df.rename(columns={
-            "Rakim": "Rakim",
-            "Stres_Skoru": "Stres_Skoru",
-            "Hava Durumu": "Hava_Durumu"
+            "Rakım (m)": "Rakim",
+            "Sağlık/Stres Skoru": "Stres_Skoru"
         })
         
-        # Veri temizliği
         df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
         df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
+        df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
         
-        # Grafik için kullanılacak ana dataframe
-        df_plot = df.dropna(subset=['Rakim', 'Stres_Skoru', 'Hava_Durumu'])
-        
-        # Plotly grafik
-        fig = px.scatter(df_plot, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
-                         title="Rakım vs. Fizyolojik Stres ($S_s$)")
+        # Bilimsel Analiz Grafiği
+        fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", title="Rakım vs. Fizyolojik Stres ($S_s$) Korelasyonu")
         st.plotly_chart(fig, use_container_width=True)
-        
-        # Tabloyu göster
         st.dataframe(df, use_container_width=True)
-        
     except Exception as e:
-        st.error(f"Veri yüklenirken hata oluştu: {e}")
-        st.write("Mevcut Sütun Başlıkları:", df.columns.tolist() if 'df' in locals() else "Tablo okunamadı.")
-```eof
+        st.info("Veri havuzu güncelleniyor...")
