@@ -65,15 +65,23 @@ with tab1:
         hava = st.selectbox(c["weather"], c["w_opts"])
         stres = st.slider(c["stress"], 1, 5, 1)
         
+        # pH ve Böcek seçimi mantığı
         ph_degeri = 0.0
+        zararli_turu = "Yok"
+        
         if gozlem_turu == "Toprak Analizi":
             ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
+        elif gozlem_turu == "Böcek Analizi":
+            zararli_turu = st.selectbox("Tespit Edilen Zararlı", [
+                "Sarı Çay Akarı", "Çay Koşnili", "Çay Filiz Güvesi", 
+                "Vampir Kelebek", "Kahverengi Kokarca", "Diğer"
+            ])
             
         notlar = st.text_area(c["notes"])
         
-        # Kamera küçültme: Sütun kullanarak alanı daralttık
-        col_cam, col_empty = st.columns([1, 4])
-        with col_cam:
+        # Kamera alanı küçültüldü
+        col_cam1, col_cam2 = st.columns([1, 3])
+        with col_cam1:
             foto = st.camera_input(c["photo"])
         
         submit = st.form_submit_button(c["submit"])
@@ -85,7 +93,7 @@ with tab1:
                 "Rakim": rakim,
                 "Hava_Durumu": hava,
                 "Stres_Skoru": stres,
-                "Notlar": notlar,
+                "Notlar": f"{notlar} | Zararlı: {zararli_turu}",
                 "PH": ph_degeri,
                 "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
             }
