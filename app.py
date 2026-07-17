@@ -57,14 +57,15 @@ with tab2:
         rename_map = {
             "Rakım (m)": "Rakim", 
             "Sağlık/Stres Skoru": "Stres_Skoru",
-            "Hava Durumu": "Hava_Durumu"
+            "Hava Durumu": "Hava_Durumu",
+            "Gozlem Notları": "Notlar" 
         }
         df = df.rename(columns=rename_map)
         
         if not df.empty and "Rakim" in df.columns:
             fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
                              size="Stres_Skoru", title="Rakım vs. Stres Korelasyonu",
-                             hover_data=["Gozlem Notları"])
+                             hover_data=["Notlar"])
             st.plotly_chart(fig, use_container_width=True)
             st.dataframe(df)
         else:
