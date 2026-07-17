@@ -16,7 +16,6 @@ st.title("🌱 Future Farmers Pro")
 tab1, tab2 = st.tabs(["📊 Veri Girişi", "📈 Ekolojik Analiz"])
 
 with tab1:
-    # 1. Adım: Dinamik seçim
     gozlem_turu = st.selectbox("Gözlem Türü", ["Çay Bitkisi", "Böcek Analizi", "Toprak Analizi"])
     
     with st.form("main_form", clear_on_submit=True):
@@ -24,16 +23,14 @@ with tab1:
         hava = st.selectbox("Hava Durumu", ["Güneşli", "Bulutlu", "Yağmurlu", "Don", "Karlı"])
         stres = st.slider("Stres Skoru", 1, 5, 1)
         
-        # 2. Adım: pH Alanı (Sadece Toprak Analizi seçilirse görünür)
-        ph_degeri = 0
+        # pH Alanı (Opsiyonel ve Sadece Toprak Analizinde)
+        ph_degeri = 0.0
         if gozlem_turu == "Toprak Analizi":
-            ph_degeri = st.number_input("Toprak pH Değeri", 0.0, 14.0, 7.0)
+            st.warning("💡 İpucu: pH test kitiniz yoksa 0.0 giriniz.")
+            ph_degeri = st.number_input("Toprak pH Değeri (Opsiyonel)", 0.0, 14.0, 7.0)
         
-        # 3. Adım: Böcek Rehberi (Sadece Böcek Analizi seçilirse görünür)
         if gozlem_turu == "Böcek Analizi":
-            st.info("🔍 Böcek Analiz Rehberi")
-            st.markdown("- [Çay Kurdu](https://www.google.com/search?q=çay+kurdu+zararlısı)")
-            st.markdown("- [Çay Çekirgesi](https://www.google.com/search?q=çay+çekirgesi)")
+            st.info("🔍 Böcek Rehberi: [Çay Kurdu](https://www.google.com/search?q=çay+kurdu+zararlısı)")
         
         notlar = st.text_area("Notlar")
         foto = st.camera_input("Bitki Fotoğrafı")
@@ -62,10 +59,18 @@ with tab2:
     try:
         df = pd.read_csv(SHEET_CSV_URL)
         if not df.empty:
-            fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", 
-                             title="Rakım ve Stres İlişkisi")
-            st.plotly_chart(fig, use_container_width=True)
-            st.info("💡 Veri Yorumu: Rize havzasında yükseklik arttıkça bitki stres skorlarının değişimi izlenmektedir.")
+            # 1. Rakım - Stres Grafiği
+            fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
+            st.plotly_chart(fig1, use_container_width=True)
+            
+            # 2. pH - Stres Grafiği (Sadece pH verisi girilenler için)
+            ph_df = df[df["PH"] > 0]
+            if not ph_df.empty:
+                st.subheader("🧪 pH - Stres Korelasyonu")
+                fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", title="pH Değerinin Stres Skoruna Etkisi")
+                st.plotly_chart(fig2, use_container_width=True)
+            else:
+                st.info("Henüz pH verisi girilmemiş. Analiz için Toprak Analizi gözlemleri ekleyin.")
         else:
             st.warning("Henüz veri bulunmuyor.")
     except Exception as e:
