@@ -91,15 +91,15 @@ with tab1:
             except Exception as e:
                 st.error(f"Error: {e}")
 
-    # Zararlı Rehberi (Görsellerle)
     st.markdown(f"### {c['pest_title']}")
     cols = st.columns(5)
+    # RTEÜ verilerine göre çay zararlıları listesi
     pest_data = [
-        ("Sarı Çay Akarı", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Polyphagotarsonemus_latus.jpg/200px-Polyphagotarsonemus_latus.jpg"),
-        ("Siyah Yaprak Biti", "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Toxoptera_aurantii.jpg/200px-Toxoptera_aurantii.jpg"),
-        ("Çay Koşnili", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Chloropulvinaria_floccifera.jpg/200px-Chloropulvinaria_floccifera.jpg"),
-        ("Çay Filiz Güvesi", "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Parametriotes_theae.jpg/200px-Parametriotes_theae.jpg"),
-        ("Yalancı Kelebek", "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Orasanga_japonica.jpg/200px-Orasanga_japonica.jpg")
+        ("Sarı Çay Akarı", "https://cayihtisas.erdogan.edu.tr/Files/ckFiles/cayihtisas-erdogan-edu-tr/Sari_Cay_Akari.jpg"),
+        ("Çay Koşnili", "https://cayihtisas.erdogan.edu.tr/Files/ckFiles/cayihtisas-erdogan-edu-tr/Cay_Kosnili.jpg"),
+        ("Çay Filiz Güvesi", "https://cayihtisas.erdogan.edu.tr/Files/ckFiles/cayihtisas-erdogan-edu-tr/Cay_Filiz_Guvesi.jpg"),
+        ("Vampir Kelebek (Ricania)", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ricania_simulans.jpg/200px-Ricania_simulans.jpg"),
+        ("Kahverengi Kokarca", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Halyomorpha_halys_3.jpg/200px-Halyomorpha_halys_3.jpg")
     ]
     for i, (ad, resim) in enumerate(pest_data):
         with cols[i]:
