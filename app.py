@@ -8,7 +8,7 @@ import plotly.express as px
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
 # Google Apps Script URL - Güncellediğinizden emin olun!
-WEB_APP_URL ="https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz1-G1Q6w1lZt12mJ2Q47PZ1L1S2V1I0r5w5t1w5w5w5w5w5w5w5w5w5/exec"
 
 translations = {
     "Türkçe 🇹🇷": {
@@ -63,17 +63,20 @@ with tab1:
 
 with tab2:
     st.header(t["analytics"])
-    # Google Sheets Yayınla linki (CSV)
+    # Google Sheets Yayınla linki (CSV) - Mevcut URL'niz
     SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
     
     try:
         df = pd.read_csv(SHEET_CSV_URL)
-        # Sütun isimleri Sheets'tekiyle birebir olmalı
-        df = df.rename(columns={"Rakım (m)": "Rakim", "Sağlık/Stres Skoru": "Stres_Skoru"})
+        
+        # TABLONUZDAKİ İSİMLERE GÖRE GÜNCELLEDİK:
+        df = df.rename(columns={
+            "Rakim (m)": "Rakim", 
+            "Sağlık/Stres Skoru": "Stres_Skoru"
+        })
         
         fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", title="Rakım vs. Stres Korelasyonu")
         st.plotly_chart(fig, use_container_width=True)
         st.dataframe(df)
-    except:
-        st.info("Veri havuzu yükleniyor veya boş...")
-
+    except Exception as e:
+        st.info(f"Veri havuzu yükleniyor veya boş... Hata detay: {e}")
