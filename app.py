@@ -191,6 +191,16 @@ with tab2:
             st.info("This section will display plant stress-altitude graphs and correlation analysis collected from the Rize geography. Data is currently unavailable or empty.")
     else:
         try:
+            # VERİ TEMİZLİĞİ: Sütun adlarındaki olası boşlukları ve Türkçe karakter hatalarını otomatik düzelt
+            df.columns = df.columns.str.strip()
+            df = df.rename(columns={
+                'Rakım': 'Rakim', 
+                'Stres Skoru': 'Stres_Skoru', 
+                'Hava Durumu': 'Hava_Durumu', 
+                'Gözlem Türü': 'Gozlem_Turu',
+                'Tarih ': 'Tarih'
+            })
+
             # Sütunları sayısal değerlere dönüştür ve boş verileri temizle
             df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
             df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
@@ -246,4 +256,4 @@ with tab2:
                 st.warning("Veriler okundu ancak işlenebilir sayısal bir rakım/stres verisi bulunamadı." if lang == "Türkçe 🇹🇷" else "Data read but no processable numerical altitude/stress data found.")
                 
         except Exception as e:
-            st.error(f"Grafik motoru çalışırken bir hata oluştu: {e}" if lang == "Türkçe 🇹🇷" else f"Graph engine error: {e}")
+            st.error(f"Grafik motoru çalışırken bir hata oluştu: {e} | E-Tablo Sütunlarınız: {df.columns.tolist()}" if lang == "Türkçe 🇹🇷" else f"Graph engine error: {e} | Your Sheet Columns: {df.columns.tolist()}")
