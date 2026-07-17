@@ -71,7 +71,10 @@ with tab1:
             
         notlar = st.text_area(c["notes"])
         
-        foto = st.camera_input(c["photo"])
+        # Kamera küçültme: sütun içine alarak genişliği sınırladık
+        col_cam, col_empty = st.columns([1, 2])
+        with col_cam:
+            foto = st.camera_input(c["photo"])
         
         submit = st.form_submit_button(c["submit"])
         
@@ -93,20 +96,18 @@ with tab1:
                 st.error(f"Error: {e}")
 
     st.markdown(f"### {c['pest_title']}")
-    cols = st.columns(5)
     
-    pest_data = [
-        ("Sarı Çay Akarı", "https://i.ibb.co/Lg3JmYV/Sari-Cay-Akari.jpg"),
-        ("Çay Koşnili", "https://i.ibb.co/6w4S3J4/Cay-Kosnili.jpg"),
-        ("Çay Filiz Güvesi", "https://i.ibb.co/v4S8L8c/Cay-Filiz-Guvesi.jpg"),
-        ("Vampir Kelebek (Ricania)", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ricania_simulans.jpg/200px-Ricania_simulans.jpg"),
-        ("Kahverengi Kokarca", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Halyomorpha_halys_3.jpg/200px-Halyomorpha_halys_3.jpg")
+    # Görselleri kaldırdık, sadece metin ve link tabanlı rehber
+    pest_list = [
+        ("Sarı Çay Akarı", "https://cay.rteu.edu.tr/tr/arastirma/zararlilar/sari-cay-akari"),
+        ("Çay Koşnili", "https://cay.rteu.edu.tr/tr/arastirma/zararlilar/cay-kosnili"),
+        ("Çay Filiz Güvesi", "https://cay.rteu.edu.tr/tr/arastirma/zararlilar/cay-filiz-guvesi"),
+        ("Vampir Kelebek (Ricania)", "https://www.tarimorman.gov.tr/Konular/Bitkisel-Uretim/Bitki-Sagligi/Ricania-Simulans"),
+        ("Kahverengi Kokarca", "https://www.tarimorman.gov.tr/Konular/Bitkisel-Uretim/Bitki-Sagligi/Kahverengi-Kokarca")
     ]
     
-    for i, (ad, resim) in enumerate(pest_data):
-        with cols[i]:
-            st.image(resim, use_container_width=True)
-            st.caption(ad)
+    for name, url in pest_list:
+        st.markdown(f"- [{name}]({url})")
 
 with tab2:
     st.header(c["tab2"])
@@ -118,20 +119,14 @@ with tab2:
         df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
         
         if not df.empty:
-            # Grafik 1
             fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
             st.plotly_chart(fig1, use_container_width=True)
             
-            # Grafik 2 (pH Analizi)
             ph_df = df[df["PH"] > 0]
             if not ph_df.empty:
                 st.subheader("🧪 pH - Stres Korelasyonu")
                 fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", title="pH Değerinin Stres Skoruna Etkisi")
                 st.plotly_chart(fig2, use_container_width=True)
-                
-                c1, c2 = st.columns(2)
-                c1.metric("Ortalama pH", round(ph_df["PH"].mean(), 2))
-                c2.metric("Stresli Bitki Sayısı", int((ph_df["Stres_Skoru"] >= 4).sum()))
         else:
             st.warning("Veri bulunamadı.")
     except Exception as e:
