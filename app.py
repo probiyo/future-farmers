@@ -10,7 +10,6 @@ st.set_page_config(page_title="Future Farmers Pro", layout="wide")
 
 # --- DATA ---
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5ffOJbv63pEo1df7eo3cYUP2l6EZK4p9PDUSxcC-J_yI6frbhITKlG_mGOts-Ji3A/exec"
-# CSV URL'nizin "Web'de Yayınla" (Publish to Web) linki olduğundan emin olun
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
 st.title("🌱 Future Farmers Pro")
@@ -38,8 +37,8 @@ with tab1:
                 "Tarih": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "Gozlem_Turu": gozlem_turu,
                 "Rakim": rakim,
-                "Hava": hava,
-                "Stres": stres,
+                "Hava_Durumu": hava, # Tablo ile uyumlu hale getirildi
+                "Stres_Skoru": stres, # Tablo ile uyumlu hale getirildi
                 "Notlar": notlar,
                 "PH": ph_degeri,
                 "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
@@ -56,14 +55,16 @@ with tab2:
         df = pd.read_csv(SHEET_CSV_URL)
         if not df.empty:
             # Sütun isimleri Sheets'tekiyle birebir aynı olmalı
-            fig1 = px.scatter(df, x="Rakim", y="Stres", color="Hava", size="Stres", title="Rakım ve Stres İlişkisi")
+            fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
             st.plotly_chart(fig1, use_container_width=True)
             
-            ph_df = df[df["PH"] > 0]
-            if not ph_df.empty:
-                st.subheader("🧪 pH - Stres Korelasyonu")
-                fig2 = px.scatter(ph_df, x="PH", y="Stres", color="Rakim", size="Stres", title="pH Değerinin Stres Skoruna Etkisi")
-                st.plotly_chart(fig2, use_container_width=True)
+            # PH sütunu mevcutsa analiz et
+            if "PH" in df.columns:
+                ph_df = df[df["PH"] > 0]
+                if not ph_df.empty:
+                    st.subheader("🧪 pH - Stres Korelasyonu")
+                    fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", title="pH Değerinin Stres Skoruna Etkisi")
+                    st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Henüz veri bulunmuyor.")
     except Exception as e:
