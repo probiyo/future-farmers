@@ -54,17 +54,27 @@ with tab2:
     try:
         df = pd.read_csv(SHEET_CSV_URL)
         if not df.empty:
-            # Sütun isimleri Sheets'tekiyle birebir aynı olmalı
             fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
             st.plotly_chart(fig1, use_container_width=True)
             
-            # PH sütunu mevcutsa analiz et
             if "PH" in df.columns:
                 ph_df = df[df["PH"] > 0]
                 if not ph_df.empty:
                     st.subheader("🧪 pH - Stres Korelasyonu")
-                    fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", title="pH Değerinin Stres Skoruna Etkisi")
+                    # pH verisini görselleştirme
+                    fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", 
+                                      title="pH Değerinin Stres Skoruna Etkisi",
+                                      labels={"PH": "Toprak pH Değeri", "Stres_Skoru": "Stres Skoru (1-5)"})
                     st.plotly_chart(fig2, use_container_width=True)
+                    
+                    # pH istatistikleri
+                    col1, col2 = st.columns(2)
+                    col1.metric("Ortalama pH", round(ph_df["PH"].mean(), 2))
+                    col2.metric("Stresli Bitki Sayısı", len(ph_df[ph_df["Stres_Skoru"] >= 4]))
+                else:
+                    st.info("pH verisi henüz yeterli değil.")
+            else:
+                st.warning("pH sütunu veri tabanında bulunamadı.")
         else:
             st.warning("Henüz veri bulunmuyor.")
     except Exception as e:
