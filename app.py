@@ -70,6 +70,7 @@ with tab1:
             ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
             
         notlar = st.text_area(c["notes"])
+        
         foto = st.camera_input(c["photo"])
         
         submit = st.form_submit_button(c["submit"])
@@ -93,14 +94,15 @@ with tab1:
 
     st.markdown(f"### {c['pest_title']}")
     cols = st.columns(5)
-    # RTEÜ verilerine göre çay zararlıları listesi
+    
     pest_data = [
-        ("Sarı Çay Akarı", "https://cayihtisas.erdogan.edu.tr/Files/ckFiles/cayihtisas-erdogan-edu-tr/Sari_Cay_Akari.jpg"),
-        ("Çay Koşnili", "https://cayihtisas.erdogan.edu.tr/Files/ckFiles/cayihtisas-erdogan-edu-tr/Cay_Kosnili.jpg"),
-        ("Çay Filiz Güvesi", "https://cayihtisas.erdogan.edu.tr/Files/ckFiles/cayihtisas-erdogan-edu-tr/Cay_Filiz_Guvesi.jpg"),
+        ("Sarı Çay Akarı", "https://i.ibb.co/Lg3JmYV/Sari-Cay-Akari.jpg"),
+        ("Çay Koşnili", "https://i.ibb.co/6w4S3J4/Cay-Kosnili.jpg"),
+        ("Çay Filiz Güvesi", "https://i.ibb.co/v4S8L8c/Cay-Filiz-Guvesi.jpg"),
         ("Vampir Kelebek (Ricania)", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ricania_simulans.jpg/200px-Ricania_simulans.jpg"),
         ("Kahverengi Kokarca", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Halyomorpha_halys_3.jpg/200px-Halyomorpha_halys_3.jpg")
     ]
+    
     for i, (ad, resim) in enumerate(pest_data):
         with cols[i]:
             st.image(resim, use_container_width=True)
