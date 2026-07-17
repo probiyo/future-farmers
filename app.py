@@ -81,20 +81,30 @@ with tab2:
 
     try:
         df = load_data()
-        # TABLO BAŞLIKLARINI EŞLEŞTİRME:
-        # Kodun anlayacağı isimlere, tablodaki gerçek isimleri atıyoruz
+        
+        # TABLO BAŞLIKLARINI EŞLEŞTİRME (Google Sheets'teki isimlere göre yeniden adlandırıyoruz)
         df = df.rename(columns={
-            "Rakım (m)": "Rakim",
-            "Sağlık/Stres Skoru": "Stres_Skoru"
+            "Rakim": "Rakim",
+            "Stres_Skoru": "Stres_Skoru",
+            "Hava Durumu": "Hava_Durumu"
         })
         
+        # Veri temizliği
         df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
         df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
-        df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
         
-        fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", title="Rakım vs. Fizyolojik Stres ($S_s$)")
+        # Grafik için kullanılacak ana dataframe
+        df_plot = df.dropna(subset=['Rakim', 'Stres_Skoru', 'Hava_Durumu'])
+        
+        # Plotly grafik
+        fig = px.scatter(df_plot, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
+                         title="Rakım vs. Fizyolojik Stres ($S_s$)")
         st.plotly_chart(fig, use_container_width=True)
+        
+        # Tabloyu göster
         st.dataframe(df, use_container_width=True)
+        
     except Exception as e:
-        st.info("Veri havuzu güncelleniyor veya tablo başlıkları eşleşmiyor...")
-        st.error(f"Teknik Hata: {e}")
+        st.error(f"Veri yüklenirken hata oluştu: {e}")
+        st.write("Mevcut Sütun Başlıkları:", df.columns.tolist() if 'df' in locals() else "Tablo okunamadı.")
+```eof
