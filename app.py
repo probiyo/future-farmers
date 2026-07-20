@@ -24,7 +24,9 @@ LANGS = {
         "stress_normal": "Analiz edilen verilerde stres seviyeleri normal sınırlar içerisinde.",
         "summary": "**Özet:** Veri setinde toplam {count} gözlem bulunmaktadır. pH değerleri, gözlem türlerine göre stabilite göstermektedir.",
         "no_data": "Henüz yeterli veri girişi yapılmamış.",
-        "sheet_error": "E-Tabloya ulaşılamadı. Hata kodu: {code}"
+        "sheet_error": "E-Tabloya ulaşılamadı. Hata kodu: {code}",
+        "weather_options": ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Karlı", "Don"],
+        "plants": {"Çay Bitkisi": "Çay Bitkisi", "Cucumis sativus": "Cucumis sativus", "Diğer": "Diğer"}
     },
     "EN": {
         "title": "🌱 Future Farmers: Scientific Observation",
@@ -42,7 +44,9 @@ LANGS = {
         "stress_normal": "Stress levels in the analyzed data are within normal limits.",
         "summary": "**Summary:** There are a total of {count} observations in the dataset. pH values show stability according to observation types.",
         "no_data": "Not enough data entered yet.",
-        "sheet_error": "Could not reach Spreadsheet. Error code: {code}"
+        "sheet_error": "Could not reach Spreadsheet. Error code: {code}",
+        "weather_options": ["Sunny", "Cloudy", "Rainy", "Foggy", "Snowy", "Frost"],
+        "plants": {"Çay Bitkisi": "Tea Plant", "Cucumis sativus": "Cucumis sativus", "Diğer": "Other"}
     }
 }
 
@@ -59,22 +63,25 @@ st.markdown("""
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec"
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
-PEST_DATABASE = {
-    "Türkiye": {
-        "Çay Bitkisi": ["Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca"],
-        "Cucumis sativus": ["Yok", "Yaprak Biti", "Kırmızı Örümcek", "Beyaz Sinek", "Salatalık Mildiyösü"],
-        "Diğer": ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
-    },
-    "Belçika": {
-        "Brassica oleracea (Brüksel Lahanası)": ["Yok", "Yaprak Biti (Aphids)", "Lahana Güvesi", "Toprak Piresi", "Salyangoz"],
-        "Diğer": ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
+# PEST_DATABASE içeriğini dile göre dinamik hale getirdik
+def get_plants(lang):
+    return {
+        "Türkiye": {
+            t["plants"]["Çay Bitkisi"]: ["Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca"],
+            t["plants"]["Cucumis sativus"]: ["Yok", "Yaprak Biti", "Kırmızı Örümcek", "Beyaz Sinek", "Salatalık Mildiyösü"],
+            t["plants"]["Diğer"]: ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
+        },
+        "Belçika": {
+            "Brassica oleracea (Brüksel Lahanası)": ["Yok", "Yaprak Biti (Aphids)", "Lahana Güvesi", "Toprak Piresi", "Salyangoz"],
+            t["plants"]["Diğer"]: ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
+        }
     }
-}
 
 st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 
 lang_code = st.sidebar.selectbox("Language / Dil", ["TR", "EN"])
 t = LANGS[lang_code]
+PEST_DATABASE = get_plants(lang_code)
 
 st.title(t["title"])
 
@@ -86,7 +93,7 @@ with tab1:
     
     with st.form("main_form", clear_on_submit=True):
         rakim = st.number_input(t["alt"], 0, 2000, 200)
-        hava = st.selectbox(t["weather"], ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli"])
+        hava = st.selectbox(t["weather"], t["weather_options"])
         
         stres = st.slider(t["stress"], 1, 5, 1)
         if lang_code == "TR":
