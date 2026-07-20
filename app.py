@@ -75,7 +75,13 @@ with tab1:
     with st.form("main_form", clear_on_submit=True):
         rakim = st.number_input(t["alt"], 0, 2000, 200)
         hava = st.selectbox(t["weather"], ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli"])
+        
         stres = st.slider(t["stress"], 1, 5, 1)
+        if lang_code == "TR":
+            st.caption("1: Çok Sağlıklı | 3: Orta Düzey Stres | 5: Kritik (Acil Müdahale Gerekli)")
+        else:
+            st.caption("1: Very Healthy | 3: Moderate Stress | 5: Critical (Urgent Intervention Needed)")
+            
         zararli_turu = st.selectbox(t["pest"], PEST_DATABASE[ulke][bitki_turu])
         ph_degeri = st.number_input(t["ph"], 0.0, 14.0, 7.0)
         notlar = st.text_area(t["notes"])
