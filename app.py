@@ -6,8 +6,8 @@ import datetime
 import base64
 
 # --- YAPILANDIRMA ---
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec"
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
+WEB_APP_URL = "[https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec](https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec)"
+SHEET_CSV_URL = "[https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv](https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv)"
 
 # --- ZARARLI VERİ TABANI ---
 PEST_DATABASE = {
@@ -92,6 +92,3 @@ with tab2:
             
     except Exception as e:
         st.error(f"Analiz verisi yüklenemedi. Lütfen Google E-Tablonuzun 'Web'de yayınlandığından' emin olun: {e}")
-```eof
-
-Bu kodu GitHub'a kopyalayıp kaydettiğinde, "Veri Analizi" sekmen artık Google Sheet'indeki verileri otomatik olarak çekip grafiklere dönüştürecek!
