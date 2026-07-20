@@ -4,10 +4,12 @@ import plotly.express as px
 import requests
 import datetime
 import base64
+import io
 
 # --- YAPILANDIRMA ---
-WEB_APP_URL = "[https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec](https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec)"
-SHEET_CSV_URL = "[https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv](https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv)"
+# Parantezleri ve hatalı biçimlendirmeyi temizledim
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec"
+SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
 # --- ZARARLI VERİ TABANI ---
 PEST_DATABASE = {
@@ -37,9 +39,7 @@ with tab1:
         hava = st.selectbox("Hava Durumu", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli"])
         stres = st.slider("Stres Skoru (1-5)", 1, 5, 1)
         
-        # Dinamik Zararlı Seçimi
         zararli_turu = st.selectbox("Tespit Edilen Zararlı", PEST_DATABASE[ulke][bitki_turu])
-            
         ph_degeri = st.number_input("PH Değeri", 0.0, 14.0, 7.0)
         notlar = st.text_area("Notlar")
         foto = st.camera_input("Fotoğraf Çek")
@@ -63,33 +63,29 @@ with tab1:
             except Exception as e:
                 st.error(f"Hata oluştu: {e}")
 
-# ... (kodun diğer kısımları aynı kalacak)
-
 with tab2:
     st.header("📈 Ekolojik Analiz")
     try:
-        # Veriyi requests ile çekip StringIO ile pandas'a aktarıyoruz
-        import io
-        response = requests.get(SHEET_CSV_URL)
+        response = requests.get(SHEET_CSV_URL, timeout=10)
         if response.status_code == 200:
             df = pd.read_csv(io.StringIO(response.text))
             
-            # Sayısal formata çevir
+            # Veri tiplerini temizle
             df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
             df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
             df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
             
             if not df.empty:
-                # 1. Grafik: Rakım vs Stres
+                # 1. Grafik
                 fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
                                  size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
                 st.plotly_chart(fig1, use_container_width=True)
                 
-                # 2. Özet Bilgi
+                # 2. Özet
                 avg_stres = df['Stres_Skoru'].mean()
                 st.metric("Ortalama Stres Skoru", f"{avg_stres:.2f}")
                 
-                # 3. Grafik: pH Analizi
+                # 3. Grafik
                 fig2 = px.box(df, x="Gozlem_Turu", y="PH", title="Türlere Göre pH Dağılımı")
                 st.plotly_chart(fig2, use_container_width=True)
             else:
