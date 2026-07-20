@@ -1,76 +1,141 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 import requests
-import json
+import datetime
 import base64
-from datetime import datetime
 
+# --- CONFIG ---
 st.set_page_config(page_title="Future Farmers Pro", layout="wide")
 
-c = {
-    "title": "Future Farmers: Rize Ekolojik İzleme",
-    "notes": "Gözlemlerinizi buraya not edebilirsiniz...",
-    "submit": "Gözlemi Kaydet"
+# --- DATA ---
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoMSJje6QqoCd7L8lkvlIkGAHMnUzriUnX0jsiJm08rvO2gxAks8wzE6z8JQpCFcg6/exec"
+SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
+
+# --- MULTILINGUAL CONTENT ---
+CONTENT = {
+    "TR": {
+        "title": "🌱 Future Farmers Pro",
+        "tab1": "📊 Veri Girişi",
+        "tab2": "📈 Ekolojik Analiz",
+        "obs": "Gözlem Türü",
+        "types": ["Çay Bitkisi", "Böcek Analizi", "Toprak Analizi"],
+        "alt": "Rakım (m)",
+        "weather": "Hava Durumu",
+        "w_opts": ["Güneşli", "Bulutlu", "Yağmurlu", "Don", "Karlı"],
+        "stress": "Stres Skoru (1-5)",
+        "ph": "Toprak pH Değeri",
+        "notes": "Notlar",
+        "photo": "Bitki Fotoğrafı",
+        "submit": "Veriyi Gönder",
+        "success": "Veri başarıyla gönderildi!",
+        "pest_title": "🔍 Rize Çay Zararlıları Rehberi"
+    },
+    "EN": {
+        "title": "🌱 Future Farmers Pro",
+        "tab1": "📊 Data Entry",
+        "tab2": "📈 Ecological Analysis",
+        "obs": "Observation Type",
+        "types": ["Tea Plant", "Pest Analysis", "Soil Analysis"],
+        "alt": "Altitude (m)",
+        "weather": "Weather",
+        "w_opts": ["Sunny", "Cloudy", "Rainy", "Frost", "Snowy"],
+        "stress": "Stress Score (1-5)",
+        "ph": "Soil pH Level",
+        "notes": "Notes",
+        "photo": "Plant Photo",
+        "submit": "Submit Data",
+        "success": "Data sent successfully!",
+        "pest_title": "🔍 Rize Tea Pest Guide"
+    }
 }
 
+# --- SIDEBAR ---
+lang = st.sidebar.radio("🌐 Language / Dil", ["TR", "EN"])
+c = CONTENT[lang]
+
 st.title(c["title"])
+tab1, tab2 = st.tabs([c["tab1"], c["tab2"]])
 
-# API URL
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw6U5_hI889oB9xH-80hD6Z6k641_V7B3o0c_t6x8r1yQJg3H-h8YqG_K_M6z4n/exec"
-
-with st.form("gozlem_formu"):
-    tarih = st.date_input("Gözlem Tarihi")
-    gozlem_turu = st.selectbox("Gözlem Türü", ["Bitki Gelişimi", "Böcek Analizi", "Toprak Analizi"])
-    rakim = st.number_input("Rakım (m)", min_value=0, max_value=2000, value=200)
-    hava_durumu = st.selectbox("Hava Durumu", ["Güneşli", "Bulutlu", "Yağışlı", "Sisli"])
-    stres_skoru = st.slider("Bitki Stres Skoru (1-5)", 1, 5, 1)
+with tab1:
+    gozlem_turu = st.selectbox(c["obs"], c["types"])
     
-    if gozlem_turu == "Böcek Analizi":
-        zararli_turu = st.selectbox("Tespit Edilen Zararlı", [
-            "Çay Koşnili", "Çay Filiz Güvesi (Parametriotes theae)", 
-            "Vampir Kelebek", "Kahverengi Kokarca", "Diğer"
-        ])
+    with st.form("main_form", clear_on_submit=True):
+        rakim = st.number_input(c["alt"], 0, 2000, 200)
+        hava = st.selectbox(c["weather"], c["w_opts"])
+        stres = st.slider(c["stress"], 1, 5, 1)
         
-    notlar = st.text_area(c["notes"])
-    foto = st.camera_input("Bitki Fotoğrafı Çek")
-    
-    submitted = st.form_submit_button(c["submit"])
+        # pH ve Böcek seçimi mantığı
+        ph_degeri = 0.0
+        zararli_turu = "Yok"
+        
+        if gozlem_turu == "Toprak Analizi":
+            ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
+        elif gozlem_turu == "Böcek Analizi":
+            zararli_turu = st.selectbox("Tespit Edilen Zararlı", [
+                "Sarı Çay Akarı", "Çay Koşnili", "Çay Filiz Güvesi", 
+                "Vampir Kelebek", "Kahverengi Kokarca", "Diğer"
+            ])
+            
+        notlar = st.text_area(c["notes"])
+        
+        # Kamera alanı küçültüldü
+        col_cam1, col_cam2 = st.columns([1, 3])
+        with col_cam1:
+            foto = st.camera_input(c["photo"])
+        
+        submit = st.form_submit_button(c["submit"])
+        
+        if submit:
+            payload = {
+                "Tarih": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Gozlem_Turu": gozlem_turu,
+                "Rakim": rakim,
+                "Hava_Durumu": hava,
+                "Stres_Skoru": stres,
+                "Notlar": f"{notlar} | Zararlı: {zararli_turu}",
+                "PH": ph_degeri,
+                "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
+            }
+            try:
+                requests.post(WEB_APP_URL, json=payload, timeout=15)
+                st.success(c["success"])
+            except Exception as e:
+                st.error(f"Error: {e}")
 
-if submitted:
-    foto_base64 = "Test_Verisi"
-    if foto:
-        foto_bytes = foto.getvalue()
-        foto_base64 = base64.b64encode(foto_bytes).decode('utf-8')
+    st.markdown(f"### {c['pest_title']}")
     
-    payload = {
-        "Tarih": str(tarih),
-        "Gozlem_Turu": gozlem_turu,
-        "Rakim": rakim,
-        "Hava_Durumu": hava_durumu,
-        "Stres_Skoru": stres_skoru,
-        "Notlar": notlar,
-        "Foto_Base64": foto_base64,
-        "PH": "" 
-    }
+    # Sadece linklerden oluşan güncel liste
+    pest_list = [
+        ("Sarı Çay Akarı", "https://www.koppert.com.tr/bitki-zararlilari/oeruemcek-akarlari-ve-diger-akarlar/sebzelerde-sari-cay-akari/?utm_source=copilot.com"),
+        ("Çay Koşnili", "https://agrobaseapp.com/turkey/pest/cay-kosnili"),
+        ("Çay Filiz Güvesi", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
+        ("Vampir Kelebek (Ricania)", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
+        ("Kahverengi Kokarca", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx?TermStoreId=368e785b-af33-487d-a98d-c11d5495130b&TermSetId=279e10a1-a60d-421b-9d0c-a06a9ce2ebfa&TermId=2b9226ff-4a3b-4ab9-a217-c4482dc84dfa&UrlSuffix=25/Kahverengi-Kokarca")
+    ]
     
+    for name, url in pest_list:
+        st.markdown(f"- [{name}]({url})")
+
+with tab2:
+    st.header(c["tab2"])
     try:
-        response = requests.post(WEB_APP_URL, json=payload)
-        if response.text == "Başarılı":
-            st.success("Veri başarıyla kaydedildi!")
+        df = pd.read_csv(SHEET_CSV_URL)
+        df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
+        df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
+        df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
+        df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
+        
+        if not df.empty:
+            fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
+            st.plotly_chart(fig1, use_container_width=True)
+            
+            ph_df = df[df["PH"] > 0]
+            if not ph_df.empty:
+                st.subheader("🧪 pH - Stres Korelasyonu")
+                fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", title="pH Değerinin Stres Skoruna Etkisi")
+                st.plotly_chart(fig2, use_container_width=True)
         else:
-            st.error(f"Hata: {response.text}")
+            st.warning("Veri bulunamadı.")
     except Exception as e:
-        st.error(f"Bağlantı hatası: {str(e)}")
-
-st.markdown("---")
-st.subheader("🎓 Zararlı İzleme Kaynakları")
-
-pest_list = [
-    ("Çay Koşnili", "https://agrobaseapp.com/turkey/pest/cay-kosnili"),
-    ("Çay Filiz Güvesi (Parametriotes theae)", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
-    ("Vampir Kelebek (Ricania)", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
-    ("Kahverengi Kokarca", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx?TermStoreId=368e785b-af33-487d-a98d-c11d5495130b&TermSetId=279e10a1-a60d-421b-9d0c-a06a9ce2ebfa&TermId=2b9226ff-4a3b-4ab9-a217-c4482dc84dfa&UrlSuffix=25/Kahverengi-Kokarca")
-]
-
-for name, url in pest_list:
-    st.markdown(f"- [{name}]({url})")
+        st.error(f"Analiz verisi yüklenemedi: {e}")
