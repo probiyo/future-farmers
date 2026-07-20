@@ -5,61 +5,102 @@ import requests
 import datetime
 import base64
 
-# --- STREAMING_CHUNK:Initializing configuration and data sources ---
+# --- CONFIG ---
 st.set_page_config(page_title="Future Farmers Pro", layout="wide")
 
+# --- DATA ---
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoMSJje6QqoCd7L8lkvlIkGAHMnUzriUnX0jsiJm08rvO2gxAks8wzE6z8JQpCFcg6/exec"
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
-# --- STREAMING_CHUNK:Defining multilingual UI content ---
+# --- MULTILINGUAL CONTENT ---
 CONTENT = {
     "TR": {
         "title": "🌱 Future Farmers Pro",
         "tab1": "📊 Veri Girişi",
         "tab2": "📈 Ekolojik Analiz",
-        "obs": "Gözlem Detayları",
+        "obs": "Gözlem Türü",
+        "types": ["Çay Bitkisi", "Böcek Analizi", "Toprak Analizi"],
+        "alt": "Rakım (m)",
         "weather": "Hava Durumu",
         "w_opts": ["Güneşli", "Bulutlu", "Yağmurlu", "Don", "Karlı"],
-        "stress": "Bitki Stres Skoru (1-5)",
-        "ph": "Toprak pH",
-        "pest": "Zararlı Analizi (Opsiyonel)",
-        "pest_opts": ["Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca"],
-        "notes": "Ek Notlar",
+        "stress": "Stres Skoru (1-5)",
+        "stress_desc": "1: Çok Sağlıklı | 2: Hafif Solgun | 3: Orta Derece Stres | 4: Ciddi Stres | 5: Kritik / Kuruma Riski",
+        "ph": "Toprak pH Değeri",
+        "notes": "Notlar",
         "photo": "Bitki Fotoğrafı",
         "submit": "Veriyi Gönder",
-        "success": "Veri başarıyla kaydedildi!"
+        "success": "Veri başarıyla gönderildi!",
+        "pest_title": "🔍 Rize Çay Zararlıları Rehberi"
+    },
+    "EN": {
+        "title": "🌱 Future Farmers Pro",
+        "tab1": "📊 Data Entry",
+        "tab2": "📈 Ecological Analysis",
+        "obs": "Observation Type",
+        "types": ["Tea Plant", "Pest Analysis", "Soil Analysis"],
+        "alt": "Altitude (m)",
+        "weather": "Weather",
+        "w_opts": ["Sunny", "Cloudy", "Rainy", "Frost", "Snowy"],
+        "stress": "Stress Score (1-5)",
+        "stress_desc": "1: Very Healthy | 2: Slightly Wilted | 3: Moderate Stress | 4: Severe Stress | 5: Critical / Drying Risk",
+        "ph": "Soil pH Level",
+        "notes": "Notes",
+        "photo": "Plant Photo",
+        "submit": "Submit Data",
+        "success": "Data sent successfully!",
+        "pest_title": "🔍 Rize Tea Pest Guide"
     }
 }
-c = CONTENT["TR"] # Varsayılan TR
+
+# --- SIDEBAR ---
+lang = st.sidebar.radio("🌐 Language / Dil", ["TR", "EN"])
+c = CONTENT[lang]
 
 st.title(c["title"])
 tab1, tab2 = st.tabs([c["tab1"], c["tab2"]])
 
-# --- STREAMING_CHUNK:Rendering main form logic ---
+# Böcek Verileri
+PEST_DATA = {
+    "Çay Filiz Güvesi (Parametriotes theae)": "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi",
+    "Çay Koşnili (Pulvinaria floccifera)": "https://agrobaseapp.com/turkey/pest/cay-kosnili",
+    "Vampir Kelebek (Ricania simulans)": "https://tr.wikipedia.org/wiki/Vampir_kelebek",
+    "Kahverengi Kokarca (Halyomorpha halys)": "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx"
+}
+
 with tab1:
+    gozlem_turu = st.selectbox(c["obs"], c["types"])
+    
     with st.form("main_form", clear_on_submit=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            rakim = st.number_input("Rakım (m)", 0, 2000, 200)
-            hava = st.selectbox(c["weather"], c["w_opts"])
-            stres = st.slider(c["stress"], 1, 5, 1)
-        with col2:
-            ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
-            zararli_turu = st.selectbox(c["pest"], c["pest_opts"])
-            notlar = st.text_area(c["notes"])
+        rakim = st.number_input(c["alt"], 0, 2000, 200)
+        hava = st.selectbox(c["weather"], c["w_opts"])
+        stres = st.slider(c["stress"], 1, 5, 1)
+        st.caption(c["stress_desc"]) 
         
-        foto = st.camera_input(c["photo"])
+        ph_degeri = 0.0
+        secilen_bocek = "Yok"
+        
+        if gozlem_turu == "Toprak Analizi":
+            ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
+        elif gozlem_turu == "Böcek Analizi":
+            secilen_bocek = st.selectbox("Tespit Edilen Zararlı", list(PEST_DATA.keys()))
+            st.markdown(f"📖 **Bilgi:** [Bu böcek hakkında detaylı bilgi için tıklayın]({PEST_DATA[secilen_bocek]})")
+            
+        notlar = st.text_area(c["notes"])
+        col_cam1, col_cam2 = st.columns([1, 3])
+        with col_cam1:
+            foto = st.camera_input(c["photo"])
+        
         submit = st.form_submit_button(c["submit"])
         
         if submit:
             payload = {
                 "Tarih": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Gozlem_Turu": gozlem_turu,
                 "Rakim": rakim,
                 "Hava_Durumu": hava,
                 "Stres_Skoru": stres,
+                "Notlar": f"{notlar} | Zararlı: {secilen_bocek}",
                 "PH": ph_degeri,
-                "Zararli": zararli_turu,
-                "Notlar": notlar,
                 "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
             }
             try:
@@ -68,13 +109,21 @@ with tab1:
             except Exception as e:
                 st.error(f"Error: {e}")
 
-# --- STREAMING_CHUNK:Rendering analysis charts ---
 with tab2:
+    st.header(c["tab2"])
     try:
         df = pd.read_csv(SHEET_CSV_URL)
-        st.subheader("Veri Görselleştirme")
+        df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
+        df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
+        df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
+        df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
+        
         if not df.empty:
-            fig = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Zararli", title="Rakım ve Zararlı Stres İlişkisi")
-            st.plotly_chart(fig, use_container_width=True)
-    except:
-        st.warning("Veri bekleniyor...")
+            fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
+            st.plotly_chart(fig1, use_container_width=True)
+            
+            avg_stres = df['Stres_Skoru'].mean()
+            st.info(f"**Otomatik Analiz:** Genel stres ortalamanız: {avg_stres:.2f}. " + 
+                    ("Yüksek stres gözlemlendi, acil inceleme önerilir!" if avg_stres > 3 else "Genel durum stabil ve sağlıklı görünüyor."))
+    except Exception as e:
+        st.error(f"Analiz verisi yüklenemedi: {e}")
