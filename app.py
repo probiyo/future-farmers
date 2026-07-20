@@ -66,9 +66,8 @@ with tab1:
         rakim = st.number_input(c["alt"], 0, 2000, 200)
         hava = st.selectbox(c["weather"], c["w_opts"])
         stres = st.slider(c["stress"], 1, 5, 1)
-        st.caption(c["stress_desc"]) # Stres skoru anlamlarını ekledik
+        st.caption(c["stress_desc"]) 
         
-        # pH ve Böcek seçimi mantığı
         ph_degeri = 0.0
         zararli_turu = "Yok"
         
@@ -76,13 +75,11 @@ with tab1:
             ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
         elif gozlem_turu == "Böcek Analizi":
             zararli_turu = st.selectbox("Tespit Edilen Zararlı", [
-                "Sarı Çay Akarı", "Çay Koşnili", "Çay Filiz Güvesi", 
-                "Vampir Kelebek", "Kahverengi Kokarca", "Diğer"
+                "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca", "Diğer"
             ])
             
         notlar = st.text_area(c["notes"])
         
-        # Kamera alanı
         col_cam1, col_cam2 = st.columns([1, 3])
         with col_cam1:
             foto = st.camera_input(c["photo"])
@@ -108,11 +105,9 @@ with tab1:
  
     st.markdown(f"### {c['pest_title']}")
     
-    # Sadece linklerden oluşan güncel liste
     pest_list = [
-        ("Sarı Çay Akarı", "https://www.koppert.com.tr/bitki-zararlilari/oeruemcek-akarlari-ve-diger-akarlar/sebzelerde-sari-cay-akari/?utm_source=copilot.com"),
+        ("Çay Filiz Güvesi (Parametriotes theae)", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
         ("Çay Koşnili", "https://agrobaseapp.com/turkey/pest/cay-kosnili"),
-        ("Çay Filiz Güvesi", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
         ("Vampir Kelebek (Ricania)", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
         ("Kahverengi Kokarca", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx?TermStoreId=368e785b-af33-487d-a98d-c11d5495130b&TermSetId=279e10a1-a60d-421b-9d0c-a06a9ce2ebfa&TermId=2b9226ff-4a3b-4ab9-a217-c4482dc84dfa&UrlSuffix=25/Kahverengi-Kokarca")
     ]
