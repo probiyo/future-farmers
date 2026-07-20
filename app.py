@@ -18,7 +18,13 @@ LANGS = {
         "send": "Veriyi Gönder", "success": "Veri başarıyla gönderildi!",
         "error": "Hata oluştu", "analysis": "📈 Ekolojik Analiz",
         "metric": "Ortalama Stres Skoru", "chart1": "Rakım ve Stres İlişkisi",
-        "chart2": "Türlere Göre pH Dağılımı"
+        "chart2": "Türlere Göre pH Dağılımı",
+        "analysis_header": "📊 Veri Analizi Yorumu",
+        "stress_high": "Dikkat: Ortalama stres skoru yüksek seyrediyor. Bölgesel iyileştirme çalışmaları önerilir.",
+        "stress_normal": "Analiz edilen verilerde stres seviyeleri normal sınırlar içerisinde.",
+        "summary": "**Özet:** Veri setinde toplam {count} gözlem bulunmaktadır. pH değerleri, gözlem türlerine göre stabilite göstermektedir.",
+        "no_data": "Henüz yeterli veri girişi yapılmamış.",
+        "sheet_error": "E-Tabloya ulaşılamadı. Hata kodu: {code}"
     },
     "EN": {
         "title": "🌱 Future Farmers: Scientific Observation",
@@ -30,7 +36,13 @@ LANGS = {
         "send": "Send Data", "success": "Data sent successfully!",
         "error": "An error occurred", "analysis": "📈 Ecological Analysis",
         "metric": "Average Stress Score", "chart1": "Altitude vs Stress Relation",
-        "chart2": "pH Distribution by Species"
+        "chart2": "pH Distribution by Species",
+        "analysis_header": "📊 Data Analysis Commentary",
+        "stress_high": "Attention: The average stress score is high. Regional improvement works are recommended.",
+        "stress_normal": "Stress levels in the analyzed data are within normal limits.",
+        "summary": "**Summary:** There are a total of {count} observations in the dataset. pH values show stability according to observation types.",
+        "no_data": "Not enough data entered yet.",
+        "sheet_error": "Could not reach Spreadsheet. Error code: {code}"
     }
 }
 
@@ -124,22 +136,21 @@ with tab2:
                 avg_stres = df['Stres_Skoru'].mean()
                 st.metric(t["metric"], f"{avg_stres:.2f}")
                 
-                # Box Plot düzeltmesi: Kategori düzeni ve layout iyileştirme
                 fig2 = px.box(df, x="Gozlem_Turu", y="PH", title=t["chart2"], color="Gozlem_Turu")
                 fig2.update_layout(xaxis={'categoryorder':'total ascending'})
                 st.plotly_chart(fig2, use_container_width=True)
                 
-                st.subheader("📊 Veri Analizi Yorumu")
+                st.subheader(t["analysis_header"])
                 if avg_stres > 3:
-                    st.warning("Dikkat: Ortalama stres skoru yüksek seyrediyor. Bölgesel iyileştirme çalışmaları önerilir.")
+                    st.warning(t["stress_high"])
                 else:
-                    st.success("Analiz edilen verilerde stres seviyeleri normal sınırlar içerisinde.")
+                    st.success(t["stress_normal"])
                 
-                st.markdown(f"**Özet:** Veri setinde toplam {len(df)} gözlem bulunmaktadır. pH değerleri, gözlem türlerine göre stabilite göstermektedir.")
+                st.markdown(t["summary"].format(count=len(df)))
 
             else:
-                st.warning("Henüz yeterli veri girişi yapılmamış.")
+                st.warning(t["no_data"])
         else:
-            st.error(f"E-Tabloya ulaşılamadı. Hata kodu: {response.status_code}")
+            st.error(t["sheet_error"].format(code=response.status_code))
     except Exception as e:
         st.error(f"{t['error']}: {e}")
