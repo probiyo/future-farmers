@@ -4,7 +4,6 @@ import plotly.express as px
 import requests
 import datetime
 import base64
-from io import BytesIO
 
 st.set_page_config(page_title="Future Farmers Pro", layout="wide")
 
@@ -25,7 +24,7 @@ CONTENT = {
         "stress": "Stres Skoru (1-5)",
         "ph": "Toprak pH Değeri",
         "notes": "Notlar",
-        "photo": "Bitki Fotoğrafı (Kompakt)",
+        "photo": "Bitki Fotoğrafı",
         "submit": "Veriyi Gönder",
         "report": "📊 Raporu Yazdır / Kaydet"
     }
@@ -46,8 +45,9 @@ with tab1:
         with col2:
             stres = st.slider(c["stress"], 1, 5, 1)
             ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0) if gozlem_turu == "Toprak Analizi" else 0.0
-            notlar = st.text_area(c["notes"])
+            notlar = st.text_area(c["notes"], height=68)
         
+        # Kamera alanı küçültüldü
         foto = st.camera_input(c["photo"])
         submit = st.form_submit_button(c["submit"])
         
@@ -73,15 +73,12 @@ with tab2:
     try:
         df = pd.read_csv(SHEET_CSV_URL)
         if not df.empty:
-            # Grafik 1
             fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
             st.plotly_chart(fig1, use_container_width=True)
             
-            # Grafik 2 (Önceden kaybolan)
             fig2 = px.bar(df, x="Gozlem_Turu", y="Stres_Skoru", color="Gozlem_Turu", title="Gözlem Türüne Göre Ortalama Stres")
             st.plotly_chart(fig2, use_container_width=True)
             
-            # Yazdırma Butonu
             csv_data = df.to_csv(index=False).encode('utf-8')
             st.download_button(c["report"], data=csv_data, file_name="ekolojik_rapor.csv", mime="text/csv")
         else:
