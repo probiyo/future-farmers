@@ -7,6 +7,7 @@ import base64
 
 # --- YAPILANDIRMA ---
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec"
+SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
 # --- ZARARLI VERİ TABANI ---
 PEST_DATABASE = {
@@ -21,7 +22,7 @@ PEST_DATABASE = {
     }
 }
 
-st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱")
+st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
 st.title("🌱 Future Farmers: Bilimsel Gözlem")
 
 # --- STREAMLIT ARAYÜZÜ ---
@@ -63,4 +64,34 @@ with tab1:
                 st.error(f"Hata oluştu: {e}")
 
 with tab2:
-    st.info("Veri analizi özelliği burada yer alacaktır.")
+    st.header("📈 Ekolojik Analiz")
+    try:
+        # Veriyi çek
+        df = pd.read_csv(SHEET_CSV_URL)
+        
+        # Sayısal formata çevir
+        df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
+        df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
+        df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
+        
+        if not df.empty:
+            # 1. Grafik: Rakım vs Stres
+            fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
+                             size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
+            st.plotly_chart(fig1, use_container_width=True)
+            
+            # 2. Özet Bilgi
+            avg_stres = df['Stres_Skoru'].mean()
+            st.metric("Ortalama Stres Skoru", f"{avg_stres:.2f}")
+            
+            # 3. Grafik: pH Analizi
+            fig2 = px.box(df, x="Gozlem_Turu", y="PH", title="Türlere Göre pH Dağılımı")
+            st.plotly_chart(fig2, use_container_width=True)
+        else:
+            st.warning("Henüz yeterli veri girişi yapılmamış.")
+            
+    except Exception as e:
+        st.error(f"Analiz verisi yüklenemedi. Lütfen Google E-Tablonuzun 'Web'de yayınlandığından' emin olun: {e}")
+```eof
+
+Bu kodu GitHub'a kopyalayıp kaydettiğinde, "Veri Analizi" sekmen artık Google Sheet'indeki verileri otomatik olarak çekip grafiklere dönüştürecek!
