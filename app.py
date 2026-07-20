@@ -63,32 +63,39 @@ with tab1:
             except Exception as e:
                 st.error(f"Hata oluştu: {e}")
 
+# ... (kodun diğer kısımları aynı kalacak)
+
 with tab2:
     st.header("📈 Ekolojik Analiz")
     try:
-        # Veriyi çek
-        df = pd.read_csv(SHEET_CSV_URL)
-        
-        # Sayısal formata çevir
-        df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
-        df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
-        df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
-        
-        if not df.empty:
-            # 1. Grafik: Rakım vs Stres
-            fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
-                             size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
-            st.plotly_chart(fig1, use_container_width=True)
+        # Veriyi requests ile çekip StringIO ile pandas'a aktarıyoruz
+        import io
+        response = requests.get(SHEET_CSV_URL)
+        if response.status_code == 200:
+            df = pd.read_csv(io.StringIO(response.text))
             
-            # 2. Özet Bilgi
-            avg_stres = df['Stres_Skoru'].mean()
-            st.metric("Ortalama Stres Skoru", f"{avg_stres:.2f}")
+            # Sayısal formata çevir
+            df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
+            df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
+            df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
             
-            # 3. Grafik: pH Analizi
-            fig2 = px.box(df, x="Gozlem_Turu", y="PH", title="Türlere Göre pH Dağılımı")
-            st.plotly_chart(fig2, use_container_width=True)
+            if not df.empty:
+                # 1. Grafik: Rakım vs Stres
+                fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", 
+                                 size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
+                st.plotly_chart(fig1, use_container_width=True)
+                
+                # 2. Özet Bilgi
+                avg_stres = df['Stres_Skoru'].mean()
+                st.metric("Ortalama Stres Skoru", f"{avg_stres:.2f}")
+                
+                # 3. Grafik: pH Analizi
+                fig2 = px.box(df, x="Gozlem_Turu", y="PH", title="Türlere Göre pH Dağılımı")
+                st.plotly_chart(fig2, use_container_width=True)
+            else:
+                st.warning("Henüz yeterli veri girişi yapılmamış.")
         else:
-            st.warning("Henüz yeterli veri girişi yapılmamış.")
+            st.error(f"E-Tabloya ulaşılamadı. Hata kodu: {response.status_code}")
             
     except Exception as e:
-        st.error(f"Analiz verisi yüklenemedi. Lütfen Google E-Tablonuzun 'Web'de yayınlandığından' emin olun: {e}")
+        st.error(f"Analiz verisi işlenirken bir sorun oluştu: {e}")
