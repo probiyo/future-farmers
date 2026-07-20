@@ -128,11 +128,21 @@ with tab2:
             fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
             st.plotly_chart(fig1, use_container_width=True)
             
+            avg_stres = df['Stres_Skoru'].mean()
+            st.info(f"**Otomatik Analiz:** Şu anki verilere göre genel stres ortalamanız: {avg_stres:.2f}. " + 
+                    ("Yüksek stres gözlemlendi, acil inceleme önerilir!" if avg_stres > 3 else "Genel durum stabil ve sağlıklı görünüyor."))
+
             ph_df = df[df["PH"] > 0]
             if not ph_df.empty:
                 st.subheader("🧪 pH - Stres Korelasyonu")
                 fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", title="pH Değerinin Stres Skoruna Etkisi")
                 st.plotly_chart(fig2, use_container_width=True)
+                
+                avg_ph = ph_df['PH'].mean()
+                if avg_ph < 6.5 or avg_ph > 7.5:
+                    st.warning(f"Dikkat! Ortalama pH değeriniz ({avg_ph:.2f}) ideal aralığın (6.5-7.5) dışında. Bu durum bitki stresini tetikliyor olabilir.")
+                else:
+                    st.success(f"Toprak pH seviyesi ({avg_ph:.2f}) ideal aralıkta, bitki gelişimi için uygun.")
         else:
             st.warning("Veri bulunamadı.")
     except Exception as e:
