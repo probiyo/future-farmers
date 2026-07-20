@@ -8,17 +8,28 @@ import base64
 # STREAMLIT_CHUNK:Initializing page configuration
 st.set_page_config(page_title="Future Farmers Pro", layout="wide", page_icon="🌱")
 
-# --- DATA ---
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoMSJje6QqoCd7L8lkvlIkGAHMnUzriUnX0jsiJm08rvO2gxAks8wzE6z8JQpCFcg6/exec"
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
-
-# --- ZARARLI REHBERI ---
+# --- DATA: ZARARLI REHBERİ (Güncellendi) ---
 PEST_DATA = {
-    "Sarı Çay Akarı": {"bilimsel": "Polyphagotarsonemus latus", "info": "https://www.tarimorman.gov.tr"},
-    "Çay Koşnili": {"bilimsel": "Chloropulvinaria psidii", "info": "https://www.agri.ankara.edu.tr"},
-    "Çay Filiz Güvesi": {"bilimsel": "Cydia leucostoma", "info": "https://www.rize.tarimorman.gov.tr"},
-    "Vampir Kelebek": {"bilimsel": "Metcalfa pruinosa", "info": "https://dergipark.org.tr"},
-    "Kahverengi Kokarca": {"bilimsel": "Halyomorpha halys", "info": "https://www.kokarca.gov.tr"}
+    "Sarı Çay Akarı": {
+        "bilimsel": "Polyphagotarsonemus latus", 
+        "info": "https://www.tarimorman.gov.tr/Konular/Bitkisel-Uretim/Bitki-Sagligi/Entegre-Mucadele/Cay-Zararlilari"
+    },
+    "Çay Koşnili": {
+        "bilimsel": "Chloropulvinaria psidii", 
+        "info": "https://www.agri.ankara.edu.tr/yayin/Cay_Zararlilari_Kilavuzu.pdf"
+    },
+    "Çay Filiz Güvesi": {
+        "bilimsel": "Cydia leucostoma", 
+        "info": "https://www.rize.tarimorman.gov.tr/hizmetler/bitki-sagligi/cay-filiz-guvesi"
+    },
+    "Vampir Kelebek": {
+        "bilimsel": "Metcalfa pruinosa", 
+        "info": "https://dergipark.org.tr/tr/pub/turkjentomol/issue/25399/268393"
+    },
+    "Kahverengi Kokarca": {
+        "bilimsel": "Halyomorpha halys", 
+        "info": "https://www.kokarca.gov.tr/zararli-tanimi"
+    }
 }
 
 # --- CONTENT ---
@@ -36,7 +47,7 @@ CONTENT = {
         "ph": "Toprak pH Değeri",
         "notes": "Bilimsel Notlar",
         "photo": "Bitki Fotoğrafı",
-        "submit": "Veriyi Kaydet ve Analize Gönder",
+        "submit": "Veriyi Kaydet",
         "success": "Veri başarıyla kaydedildi!"
     }
 }
@@ -68,13 +79,13 @@ with tab1:
         with col2:
             stres = st.slider(c["stress"], 1, 5, 1)
             
-            # Stres Açıklamaları
+            # --- STRESS MAP (Detaylandırıldı) ---
             stress_map = {
-                1: ("🟢 Sağlıklı: Bitki canlı, yapraklar parlak ve kompakt yapıda.", "success"),
-                2: ("🟡 Hafif Stres: Hafif renk değişimi veya yavaş büyüme gözlemleniyor.", "info"),
-                3: ("🟠 Orta Stres: Belirgin yaprak solgunluğu, uç kurumaları veya zararlı izleri mevcut.", "warning"),
-                4: ("🔴 Ciddi Stres: Kurumalar, ciddi zararlı tahribatı veya gövde formunda bozulma.", "error"),
-                5: ("💀 Kritik: Bitki canlılığını kaybetmek üzere, acil müdahale gerekli.", "error")
+                1: ("🟢 Sağlıklı: Bitki turgor basıncı tam, yapraklar koyu yeşil ve parlak. Metabolik aktivite normal düzeyde.", "success"),
+                2: ("🟡 Hafif Stres: Yaprak uçlarında hafif sararmalar başlıyor, stomalar çevresel değişimlere karşı yavaş tepki veriyor.", "info"),
+                3: ("🟠 Orta Stres: Belirgin yaprak solgunluğu, uç kurumaları ve klorofil kaybı gözlemleniyor. Büyüme hızı yavaşlamış.", "warning"),
+                4: ("🔴 Ciddi Stres: Yapraklar kıvrılıyor, kurumalar artıyor. Gövde formunda bozulma ve ciddi zararlı tahribatı mevcut.", "error"),
+                5: ("💀 Kritik: Bitki canlılığını kaybetmek üzere, fotosentez durma noktasında. Acil müdahale ve rehabilitasyon şart.", "error")
             }
             msg, style = stress_map[stres]
             if style == "success": st.success(msg)
@@ -100,6 +111,8 @@ with tab1:
                 "PH": ph_degeri,
                 "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
             }
+            # Buraya kendi URL'nizi tekrar kontrol ederek yapıştırın
+            WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoMSJje6QqoCd7L8lkvlIkGAHMnUzriUnX0jsiJm08rvO2gxAks8wzE6z8JQpCFcg6/exec"
             try:
                 requests.post(WEB_APP_URL, json=payload, timeout=15)
                 st.success(c["success"])
@@ -109,6 +122,7 @@ with tab1:
 # --- STREAMLIT_CHUNK:Rendering Tab 2 (Analysis) ---
 with tab2:
     st.header(c["tab2"])
+    SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
     try:
         df = pd.read_csv(SHEET_CSV_URL)
         df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
