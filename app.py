@@ -67,7 +67,7 @@ st.subheader("🎓 Zararlı İzleme Kaynakları")
 
 pest_list = [
     ("Çay Koşnili", "https://agrobaseapp.com/turkey/pest/cay-kosnili"),
-    ("Çay Filiz Güvesi (Parametriotes theae)", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx?TermStoreId=368e785b-af33-487d-a98d-c11d5495130b&TermSetId=279e10a1-a60d-421b-9d0c-a06a9ce2ebfa&TermId=2b9226ff-4a3b-4ab9-a217-c4482dc84dfa&UrlSuffix=25/Cay-Filiz-Guvesi"),
+    ("Çay Filiz Güvesi (Parametriotes theae)", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
     ("Vampir Kelebek (Ricania)", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
     ("Kahverengi Kokarca", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx?TermStoreId=368e785b-af33-487d-a98d-c11d5495130b&TermSetId=279e10a1-a60d-421b-9d0c-a06a9ce2ebfa&TermId=2b9226ff-4a3b-4ab9-a217-c4482dc84dfa&UrlSuffix=25/Kahverengi-Kokarca")
 ]
