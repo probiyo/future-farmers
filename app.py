@@ -5,62 +5,10 @@ import requests
 import datetime
 import base64
 
+# --- YAPILANDIRMA ---
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec"
+
 # --- ZARARLI VERİ TABANI ---
-PEST_DATABASE = {
-    "Çay Bitkisi": ["Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca"],
-    "Diğer (Lütfen Yazınız)": ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
-}
-
-# ... existing code ... (Config ve Multilingual Content kısımlarını koruyun)
-
-with tab1:
-    gozlem_turu_secim = st.selectbox(c["obs"], list(PEST_DATABASE.keys()))
-    
-    if gozlem_turu_secim == "Diğer (Lütfen Yazınız)":
-        gozlem_turu = st.text_input("Bitki Adı")
-        zararli_options = PEST_DATABASE["Diğer (Lütfen Yazınız)"]
-    else:
-        gozlem_turu = gozlem_turu_secim
-        zararli_options = PEST_DATABASE[gozlem_turu_secim]
-    
-    with st.form("main_form", clear_on_submit=True):
-        rakim = st.number_input(c["alt"], 0, 2000, 200)
-        hava = st.selectbox(c["weather"], c["w_opts"])
-        stres = st.slider(c["stress"], 1, 5, 1)
-        st.caption(c["stress_desc"]) 
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
-        with col2:
-            # Dinamik zararlı listesi buraya bağlandı
-            zararli_turu = st.selectbox("Tespit Edilen Zararlı", zararli_options)
-            
-        notlar = st.text_area(c["notes"])
-        col_cam1, col_cam2 = st.columns([1, 3])
-        with col_cam1:
-            foto = st.camera_input(c["photo"])
-        
-        submit = st.form_submit_button(c["submit"])
-        
-        if submit:
-            payload = {
-                "Tarih": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Gozlem_Turu": gozlem_turu,
-                "Rakim": rakim,
-                "Hava_Durumu": hava,
-                "Stres_Skoru": stres,
-                "Notlar": f"{notlar} | Zararlı: {zararli_turu}",
-                "PH": ph_degeri,
-                "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
-            }
-            try:
-                requests.post(WEB_APP_URL, json=payload, timeout=15)
-                st.success(c["success"])
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-# --- ZARARLI VE BİTKİ VERİ TABANI ---
 PEST_DATABASE = {
     "Türkiye": {
         "Çay Bitkisi": ["Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca"],
@@ -72,12 +20,47 @@ PEST_DATABASE = {
         "Diğer": ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
     }
 }
-# ... existing code ...
-```
 
-### Neleri Değiştirdik?
-1.  **`PEST_DATABASE` sözlüğü oluşturduk:** Zararlıları bitki türlerine göre gruplandırdık.
-2.  **Dinamik Filtreleme:** `gozlem_turu_secim` seçimine göre `zararli_options` değişkenini güncelleyen bir `if` bloğu ekledik.
-3.  **Form Entegrasyonu:** `st.selectbox` öğesinin `options` parametresine bu dinamik değişkeni (`zararli_options`) atadık. Böylece kullanıcı "Çay Bitkisi" seçtiğinde sadece çay zararlıları listelenecektir.
+st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱")
+st.title("🌱 Future Farmers: Bilimsel Gözlem")
 
-Bu değişikliği yaptığınızda, "Gözlem Türü" değiştiği anda altındaki "Tespit Edilen Zararlı" kutusu anında güncellenecektir. Kodunuzu GitHub'a bu şekilde aktarabilirsiniz.
+# --- STREAMLIT ARAYÜZÜ ---
+tab1, tab2 = st.tabs(["Gözlem Kaydı", "Veri Analizi"])
+
+with tab1:
+    ulke = st.selectbox("Bölge Seçiniz", list(PEST_DATABASE.keys()))
+    bitki_turu = st.selectbox("Bitki Türü", list(PEST_DATABASE[ulke].keys()))
+    
+    with st.form("main_form", clear_on_submit=True):
+        rakim = st.number_input("Rakım (metre)", 0, 2000, 200)
+        hava = st.selectbox("Hava Durumu", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli"])
+        stres = st.slider("Stres Skoru (1-5)", 1, 5, 1)
+        
+        # Dinamik Zararlı Seçimi
+        zararli_turu = st.selectbox("Tespit Edilen Zararlı", PEST_DATABASE[ulke][bitki_turu])
+            
+        ph_degeri = st.number_input("PH Değeri", 0.0, 14.0, 7.0)
+        notlar = st.text_area("Notlar")
+        foto = st.camera_input("Fotoğraf Çek")
+        
+        submit = st.form_submit_button("Veriyi Gönder")
+        
+        if submit:
+            payload = {
+                "Tarih": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Gozlem_Turu": f"{ulke} - {bitki_turu}",
+                "Rakim": rakim,
+                "Hava_Durumu": hava,
+                "Stres_Skoru": stres,
+                "Notlar": f"{notlar} | Zararlı: {zararli_turu}",
+                "PH": ph_degeri,
+                "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
+            }
+            try:
+                requests.post(WEB_APP_URL, json=payload, timeout=15)
+                st.success("Veri başarıyla gönderildi!")
+            except Exception as e:
+                st.error(f"Hata oluştu: {e}")
+
+with tab2:
+    st.info("Veri analizi özelliği burada yer alacaktır.")
