@@ -60,7 +60,14 @@ st.title(c["title"])
 tab1, tab2 = st.tabs([c["tab1"], c["tab2"]])
 
 with tab1:
-    gozlem_turu = st.selectbox(c["obs"], c["types"])
+    # --- MODIFIED: Observation type with custom option ---
+    obs_options = [c["types"][0], "Diğer (Lütfen Yazınız)"] # Only Tea Plant and Custom
+    gozlem_turu_secim = st.selectbox(c["obs"], obs_options)
+    
+    if gozlem_turu_secim == "Diğer (Lütfen Yazınız)":
+        gozlem_turu = st.text_input("Bitki Adı")
+    else:
+        gozlem_turu = gozlem_turu_secim
     
     with st.form("main_form", clear_on_submit=True):
         rakim = st.number_input(c["alt"], 0, 2000, 200)
