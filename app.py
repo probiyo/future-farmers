@@ -4,14 +4,15 @@ import plotly.express as px
 import requests
 import datetime
 import base64
- 
+
 # --- CONFIG ---
 st.set_page_config(page_title="Future Farmers Pro", layout="wide")
- 
+
 # --- DATA ---
+# Not: Apps Script'ten aldığın yeni URL'yi buraya yapıştırmayı unutma!
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoMSJje6QqoCd7L8lkvlIkGAHMnUzriUnX0jsiJm08rvO2gxAks8wzE6z8JQpCFcg6/exec"
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
- 
+
 # --- MULTILINGUAL CONTENT ---
 CONTENT = {
     "TR": {
@@ -51,14 +52,14 @@ CONTENT = {
         "pest_title": "🔍 Rize Tea Pest Guide"
     }
 }
- 
+
 # --- SIDEBAR ---
 lang = st.sidebar.radio("🌐 Language / Dil", ["TR", "EN"])
 c = CONTENT[lang]
- 
+
 st.title(c["title"])
 tab1, tab2 = st.tabs([c["tab1"], c["tab2"]])
- 
+
 with tab1:
     gozlem_turu = st.selectbox(c["obs"], c["types"])
     
@@ -79,10 +80,7 @@ with tab1:
             ])
             
         notlar = st.text_area(c["notes"])
-        
-        col_cam1, col_cam2 = st.columns([1, 3])
-        with col_cam1:
-            foto = st.camera_input(c["photo"])
+        foto = st.camera_input(c["photo"])
         
         submit = st.form_submit_button(c["submit"])
         
@@ -101,27 +99,26 @@ with tab1:
                 requests.post(WEB_APP_URL, json=payload, timeout=15)
                 st.success(c["success"])
             except Exception as e:
-                st.error(f"Error: {e}")
- 
+                st.error(f"Hata: {e}")
+
+    # Zararlılar Rehberi
     st.markdown(f"### {c['pest_title']}")
-    
     pest_list = [
-        ("Çay Filiz Güvesi (Parametriotes theae)", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
+        ("Çay Filiz Güvesi", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
         ("Çay Koşnili", "https://agrobaseapp.com/turkey/pest/cay-kosnili"),
-        ("Vampir Kelebek (Ricania)", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
+        ("Vampir Kelebek", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
         ("Kahverengi Kokarca", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx?TermStoreId=368e785b-af33-487d-a98d-c11d5495130b&TermSetId=279e10a1-a60d-421b-9d0c-a06a9ce2ebfa&TermId=2b9226ff-4a3b-4ab9-a217-c4482dc84dfa&UrlSuffix=25/Kahverengi-Kokarca")
     ]
-    
     for name, url in pest_list:
         st.markdown(f"- [{name}]({url})")
- 
+
 with tab2:
     st.header(c["tab2"])
     try:
         df = pd.read_csv(SHEET_CSV_URL)
+        # Veri temizleme
         df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
         df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
-        df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
         df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
         
         if not df.empty:
@@ -129,20 +126,10 @@ with tab2:
             st.plotly_chart(fig1, use_container_width=True)
             
             avg_stres = df['Stres_Skoru'].mean()
-            st.info(f"**Otomatik Analiz:** Şu anki verilere göre genel stres ortalamanız: {avg_stres:.2f}. " + 
-                    ("Yüksek stres gözlemlendi, acil inceleme önerilir!" if avg_stres > 3 else "Genel durum stabil ve sağlıklı görünüyor."))
-
-            ph_df = df[df["PH"] > 0]
-            if not ph_df.empty:
-                st.subheader("🧪 pH - Stres Korelasyonu")
-                fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", title="pH Değerinin Stres Skoruna Etkisi")
-                st.plotly_chart(fig2, use_container_width=True)
-                
-                avg_ph = ph_df['PH'].mean()
-                if avg_ph < 6.5 or avg_ph > 7.5:
-                    st.warning(f"Dikkat! Ortalama pH değeriniz ({avg_ph:.2f}) ideal aralığın (6.5-7.5) dışında. Bu durum bitki stresini tetikliyor olabilir.")
-                else:
-                    st.success(f"Toprak pH seviyesi ({avg_ph:.2f}) ideal aralıkta, bitki gelişimi için uygun.")
+            if avg_stres > 3:
+                st.error(f"Genel Stres Ortalamanız: {avg_stres:.2f}. Yüksek stres gözlemlendi, önlem alınız!")
+            else:
+                st.success(f"Genel Stres Ortalamanız: {avg_stres:.2f}. Sağlıklı.")
         else:
             st.warning("Veri bulunamadı.")
     except Exception as e:
