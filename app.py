@@ -59,14 +59,6 @@ c = CONTENT[lang]
 st.title(c["title"])
 tab1, tab2 = st.tabs([c["tab1"], c["tab2"]])
 
-# Böcek Verileri
-PEST_DATA = {
-    "Çay Filiz Güvesi (Parametriotes theae)": "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi",
-    "Çay Koşnili (Pulvinaria floccifera)": "https://agrobaseapp.com/turkey/pest/cay-kosnili",
-    "Vampir Kelebek (Ricania simulans)": "https://tr.wikipedia.org/wiki/Vampir_kelebek",
-    "Kahverengi Kokarca (Halyomorpha halys)": "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx"
-}
-
 with tab1:
     gozlem_turu = st.selectbox(c["obs"], c["types"])
     
@@ -76,14 +68,15 @@ with tab1:
         stres = st.slider(c["stress"], 1, 5, 1)
         st.caption(c["stress_desc"]) 
         
-        ph_degeri = 0.0
-        secilen_bocek = "Yok"
-        
-        if gozlem_turu == "Toprak Analizi":
+        # --- pH VE ZARARLI SEÇİMİ (AYRI PENCERELER) ---
+        col1, col2 = st.columns(2)
+        with col1:
             ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
-        elif gozlem_turu == "Böcek Analizi":
-            secilen_bocek = st.selectbox("Tespit Edilen Zararlı", list(PEST_DATA.keys()))
-            st.markdown(f"📖 **Bilgi:** [Bu böcek hakkında detaylı bilgi için tıklayın]({PEST_DATA[secilen_bocek]})")
+        with col2:
+            zararli_turu = st.selectbox("Tespit Edilen Zararlı", [
+                "Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca", "Diğer"
+            ])
+        # -----------------------------------------------
             
         notlar = st.text_area(c["notes"])
         col_cam1, col_cam2 = st.columns([1, 3])
@@ -99,7 +92,7 @@ with tab1:
                 "Rakim": rakim,
                 "Hava_Durumu": hava,
                 "Stres_Skoru": stres,
-                "Notlar": f"{notlar} | Zararlı: {secilen_bocek}",
+                "Notlar": f"{notlar} | Zararlı: {zararli_turu}",
                 "PH": ph_degeri,
                 "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
             }
@@ -108,6 +101,16 @@ with tab1:
                 st.success(c["success"])
             except Exception as e:
                 st.error(f"Error: {e}")
+
+    st.markdown(f"### {c['pest_title']}")
+    pest_list = [
+        ("Çay Filiz Güvesi (Parametriotes theae)", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
+        ("Çay Koşnili", "https://agrobaseapp.com/turkey/pest/cay-kosnili"),
+        ("Vampir Kelebek (Ricania)", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
+        ("Kahverengi Kokarca", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx")
+    ]
+    for name, url in pest_list:
+        st.markdown(f"- [{name}]({url})")
 
 with tab2:
     st.header(c["tab2"])
@@ -125,5 +128,19 @@ with tab2:
             avg_stres = df['Stres_Skoru'].mean()
             st.info(f"**Otomatik Analiz:** Genel stres ortalamanız: {avg_stres:.2f}. " + 
                     ("Yüksek stres gözlemlendi, acil inceleme önerilir!" if avg_stres > 3 else "Genel durum stabil ve sağlıklı görünüyor."))
+            
+            ph_df = df[df["PH"] > 0]
+            if not ph_df.empty:
+                st.subheader("🧪 pH - Stres Korelasyonu")
+                fig2 = px.scatter(ph_df, x="PH", y="Stres_Skoru", color="Rakim", size="Stres_Skoru", title="pH Değerinin Stres Skoruna Etkisi")
+                st.plotly_chart(fig2, use_container_width=True)
+                
+                avg_ph = ph_df['PH'].mean()
+                if avg_ph < 6.5 or avg_ph > 7.5:
+                    st.warning(f"Dikkat! Ortalama pH değeriniz ({avg_ph:.2f}) ideal aralığın (6.5-7.5) dışında.")
+                else:
+                    st.success(f"Toprak pH seviyesi ({avg_ph:.2f}) ideal aralıkta.")
+        else:
+            st.warning("Veri bulunamadı.")
     except Exception as e:
         st.error(f"Analiz verisi yüklenemedi: {e}")
