@@ -4,16 +4,14 @@ import plotly.express as px
 import requests
 import datetime
 import base64
+from io import BytesIO
 
-# --- CONFIG ---
 st.set_page_config(page_title="Future Farmers Pro", layout="wide")
 
 # --- DATA ---
-# Not: Apps Script'ten aldığın yeni URL'yi buraya yapıştırmayı unutma!
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoMSJje6QqoCd7L8lkvlIkGAHMnUzriUnX0jsiJm08rvO2gxAks8wzE6z8JQpCFcg6/exec"
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
-# --- MULTILINGUAL CONTENT ---
 CONTENT = {
     "TR": {
         "title": "🌱 Future Farmers Pro",
@@ -25,63 +23,32 @@ CONTENT = {
         "weather": "Hava Durumu",
         "w_opts": ["Güneşli", "Bulutlu", "Yağmurlu", "Don", "Karlı"],
         "stress": "Stres Skoru (1-5)",
-        "stress_desc": "1: Çok Sağlıklı | 2: Hafif Solgun | 3: Orta Derece Stres | 4: Ciddi Stres | 5: Kritik / Kuruma Riski",
         "ph": "Toprak pH Değeri",
         "notes": "Notlar",
-        "photo": "Bitki Fotoğrafı",
+        "photo": "Bitki Fotoğrafı (Kompakt)",
         "submit": "Veriyi Gönder",
-        "success": "Veri başarıyla gönderildi!",
-        "pest_title": "🔍 Rize Çay Zararlıları Rehberi"
-    },
-    "EN": {
-        "title": "🌱 Future Farmers Pro",
-        "tab1": "📊 Data Entry",
-        "tab2": "📈 Ecological Analysis",
-        "obs": "Observation Type",
-        "types": ["Tea Plant", "Pest Analysis", "Soil Analysis"],
-        "alt": "Altitude (m)",
-        "weather": "Weather",
-        "w_opts": ["Sunny", "Cloudy", "Rainy", "Frost", "Snowy"],
-        "stress": "Stress Score (1-5)",
-        "stress_desc": "1: Very Healthy | 2: Slightly Wilted | 3: Moderate Stress | 4: Severe Stress | 5: Critical / Drying Risk",
-        "ph": "Soil pH Level",
-        "notes": "Notes",
-        "photo": "Plant Photo",
-        "submit": "Submit Data",
-        "success": "Data sent successfully!",
-        "pest_title": "🔍 Rize Tea Pest Guide"
+        "report": "📊 Raporu Yazdır / Kaydet"
     }
 }
-
-# --- SIDEBAR ---
-lang = st.sidebar.radio("🌐 Language / Dil", ["TR", "EN"])
+lang = "TR"
 c = CONTENT[lang]
 
 st.title(c["title"])
 tab1, tab2 = st.tabs([c["tab1"], c["tab2"]])
 
 with tab1:
-    gozlem_turu = st.selectbox(c["obs"], c["types"])
-    
     with st.form("main_form", clear_on_submit=True):
-        rakim = st.number_input(c["alt"], 0, 2000, 200)
-        hava = st.selectbox(c["weather"], c["w_opts"])
-        stres = st.slider(c["stress"], 1, 5, 1)
-        st.caption(c["stress_desc"]) 
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            gozlem_turu = st.selectbox(c["obs"], c["types"])
+            rakim = st.number_input(c["alt"], 0, 2000, 200)
+            hava = st.selectbox(c["weather"], c["w_opts"])
+        with col2:
+            stres = st.slider(c["stress"], 1, 5, 1)
+            ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0) if gozlem_turu == "Toprak Analizi" else 0.0
+            notlar = st.text_area(c["notes"])
         
-        ph_degeri = 0.0
-        zararli_turu = "Yok"
-        
-        if gozlem_turu == "Toprak Analizi":
-            ph_degeri = st.number_input(c["ph"], 0.0, 14.0, 7.0)
-        elif gozlem_turu == "Böcek Analizi":
-            zararli_turu = st.selectbox("Tespit Edilen Zararlı", [
-                "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca", "Diğer"
-            ])
-            
-        notlar = st.text_area(c["notes"])
         foto = st.camera_input(c["photo"])
-        
         submit = st.form_submit_button(c["submit"])
         
         if submit:
@@ -91,46 +58,33 @@ with tab1:
                 "Rakim": rakim,
                 "Hava_Durumu": hava,
                 "Stres_Skoru": stres,
-                "Notlar": f"{notlar} | Zararlı: {zararli_turu}",
+                "Notlar": notlar,
                 "PH": ph_degeri,
                 "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
             }
             try:
                 requests.post(WEB_APP_URL, json=payload, timeout=15)
-                st.success(c["success"])
+                st.success("Veri başarıyla kaydedildi!")
             except Exception as e:
                 st.error(f"Hata: {e}")
-
-    # Zararlılar Rehberi
-    st.markdown(f"### {c['pest_title']}")
-    pest_list = [
-        ("Çay Filiz Güvesi", "https://agrobaseapp.com/turkey/pest/cay-filiz-guvesi"),
-        ("Çay Koşnili", "https://agrobaseapp.com/turkey/pest/cay-kosnili"),
-        ("Vampir Kelebek", "https://tr.wikipedia.org/wiki/Vampir_kelebek"),
-        ("Kahverengi Kokarca", "https://arastirma.tarimorman.gov.tr/ktae/Sayfalar/Detay.aspx?TermStoreId=368e785b-af33-487d-a98d-c11d5495130b&TermSetId=279e10a1-a60d-421b-9d0c-a06a9ce2ebfa&TermId=2b9226ff-4a3b-4ab9-a217-c4482dc84dfa&UrlSuffix=25/Kahverengi-Kokarca")
-    ]
-    for name, url in pest_list:
-        st.markdown(f"- [{name}]({url})")
 
 with tab2:
     st.header(c["tab2"])
     try:
         df = pd.read_csv(SHEET_CSV_URL)
-        # Veri temizleme
-        df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
-        df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
-        df = df.dropna(subset=['Rakim', 'Stres_Skoru'])
-        
         if not df.empty:
+            # Grafik 1
             fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title="Rakım ve Stres İlişkisi")
             st.plotly_chart(fig1, use_container_width=True)
             
-            avg_stres = df['Stres_Skoru'].mean()
-            if avg_stres > 3:
-                st.error(f"Genel Stres Ortalamanız: {avg_stres:.2f}. Yüksek stres gözlemlendi, önlem alınız!")
-            else:
-                st.success(f"Genel Stres Ortalamanız: {avg_stres:.2f}. Sağlıklı.")
+            # Grafik 2 (Önceden kaybolan)
+            fig2 = px.bar(df, x="Gozlem_Turu", y="Stres_Skoru", color="Gozlem_Turu", title="Gözlem Türüne Göre Ortalama Stres")
+            st.plotly_chart(fig2, use_container_width=True)
+            
+            # Yazdırma Butonu
+            csv_data = df.to_csv(index=False).encode('utf-8')
+            st.download_button(c["report"], data=csv_data, file_name="ekolojik_rapor.csv", mime="text/csv")
         else:
-            st.warning("Veri bulunamadı.")
+            st.warning("Henüz veri girilmemiş.")
     except Exception as e:
-        st.error(f"Analiz verisi yüklenemedi: {e}")
+        st.error("Analiz verisi güncelleniyor, lütfen bekleyin...")
