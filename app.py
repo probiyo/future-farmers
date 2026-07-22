@@ -24,7 +24,7 @@ except Exception as e:
 st.title("🌱 Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı")
 st.write("Hoş geldiniz Hocam! Saha verileri, böcek analizleri, grafikler ve AI Agro Doctor bir arada.")
 
-# Sekmeler (Tüm modülleri topladık)
+# Sekmeler
 tab1, tab2, tab3 = st.tabs(["📸 AI Agro Doctor & Gözlem", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafikler"])
 
 with tab1:
@@ -84,7 +84,7 @@ with tab2:
         st.info("**Biyolojisi ve Zararı:** Bitki özsuyunu emerek beslenirler ve virüs hastalıklarını taşırlar.")
         st.success("**Mücadele Yöntemleri:** Uğur böceği gibi doğal düşmanların korunması, zararlı yoğunluğuna göre spesifik preparatlar.")
     elif "Kırmızı Örümcek" in bocek_secimi:
-        st.info("**Biyolojisi danışma:** Özellikle sıcak ve kurak dönemlerde yaprak altlarında ağ örerek özsu emerler.")
+        st.info("**Biyolojisi:** Özellikle sıcak ve kurak dönemlerde yaprak altlarında ağ örerek özsu emerler.")
         st.success("**Mücadele Yöntemleri:** Kükürtlü uygulamalar ve akarisitler.")
     else:
         st.info("**Biyolojisi ve Zararı:** Tarım alanlarında yeni nesil istilacı zararlılardandır, meyve ve sebzelerde kalite kaybına yol açar.")
@@ -117,4 +117,4 @@ with tab3:
         except Exception as e:
             st.error(f"Veri okunurken hata oluştu: {e}")
     else:
-        st.info("Henüz veri yüklenmedi. Örnek bir veri a
+        st.info("Henüz veri yüklenmedi. Örnek bir veri analizi için yukarıdan dosya yükleyebilirsiniz.")
