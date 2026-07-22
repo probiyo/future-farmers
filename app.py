@@ -5,6 +5,7 @@ import requests
 import datetime
 import base64
 import io
+import google.generativeai as genai
 
 # --- DİL AYARLARI ---
 LANGS = {
@@ -26,7 +27,10 @@ LANGS = {
         "no_data": "Henüz yeterli veri girişi yapılmamış.",
         "sheet_error": "E-Tabloya ulaşılamadı. Hata kodu: {code}",
         "weather_options": ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Karlı", "Don"],
-        "plants": {"Çay Bitkisi": "Çay Bitkisi", "Cucumis sativus": "Cucumis sativus", "Diğer": "Diğer"}
+        "plants": {"Çay Bitkisi": "Çay Bitkisi", "Cucumis sativus": "Cucumis sativus", "Diğer": "Diğer"},
+        "ai_btn": "🤖 AI Agro Doctor ile Fotoğrafı Analiz Et",
+        "ai_loading": "Bitki fizyolojisi ve pH değerleri analiz ediliyor...",
+        "ai_result": "🌿 AI Agro Doctor Tanı Raporu:"
     },
     "EN": {
         "title": "🌱 Future Farmers: Scientific Observation",
@@ -46,7 +50,10 @@ LANGS = {
         "no_data": "Not enough data entered yet.",
         "sheet_error": "Could not reach Spreadsheet. Error code: {code}",
         "weather_options": ["Sunny", "Cloudy", "Rainy", "Foggy", "Snowy", "Frost"],
-        "plants": {"Çay Bitkisi": "Tea Plant", "Cucumis sativus": "Cucumis sativus", "Diğer": "Other"}
+        "plants": {"Çay Bitkisi": "Tea Plant", "Cucumis sativus": "Cucumis sativus", "Diğer": "Other"},
+        "ai_btn": "🤖 Analyze Photo with AI Agro Doctor",
+        "ai_loading": "Analyzing plant physiology and pH levels...",
+        "ai_result": "🌿 AI Agro Doctor Diagnostic Report:"
     }
 }
 
@@ -63,17 +70,16 @@ st.markdown("""
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec"
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
 
-# PEST_DATABASE içeriğini dile göre dinamik hale getirdik
 def get_plants(lang):
     return {
         "Türkiye": {
-            t["plants"]["Çay Bitkisi"]: ["Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca"],
-            t["plants"]["Cucumis sativus"]: ["Yok", "Yaprak Biti", "Kırmızı Örümcek", "Beyaz Sinek", "Salatalık Mildiyösü"],
-            t["plants"]["Diğer"]: ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
+            LANGS[lang]["plants"]["Çay Bitkisi"]: ["Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca"],
+            LANGS[lang]["plants"]["Cucumis sativus"]: ["Yok", "Yaprak Biti", "Kırmızı Örümcek", "Beyaz Sinek", "Salatalık Mildiyösü"],
+            LANGS[lang]["plants"]["Diğer"]: ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
         },
         "Belçika": {
             "Brassica oleracea (Brüksel Lahanası)": ["Yok", "Yaprak Biti (Aphids)", "Lahana Güvesi", "Toprak Piresi", "Salyangoz"],
-            t["plants"]["Diğer"]: ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
+            LANGS[lang]["plants"]["Diğer"]: ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
         }
     }
 
@@ -106,6 +112,42 @@ with tab1:
         notlar = st.text_area(t["notes"])
         foto = st.camera_input(t["cam"])
         
+        # --- AI AGRO DOCTOR ENTEGRASYONU ---
+        ai_analiz_tetiklendi = st.form_submit_button(t["ai_btn"])
+        
+        if ai_analiz_tetiklendi:
+            if not foto:
+                st.warning("Lütfen önce bir fotoğraf çekin! / Please take a photo first!")
+            else:
+                try:
+                    # Streamlit secrets içerisinden API anahtarını güvenle çeker
+                    api_key = st.secrets.get("GEMINI_API_KEY", "")
+                    if not api_key:
+                        st.error("GEMINI_API_KEY bulunamadı! Lütfen Streamlit secrets ayarlarına ekleyin.")
+                    else:
+                        genai.configure(api_key=api_key)
+                        model = genai.GenerativeModel('gemini-1.5-flash')
+                        
+                        image_bytes = foto.getvalue()
+                        image_part = {
+                            "mime_type": "image/jpeg",
+                            "data": image_bytes
+                        }
+                        
+                        prompt = (
+                            f"Sen uzman bir ziraat mühendisi ve bitki fizyoloğusun. "
+                            f"Bitki türü: {bitki_turu}, Toprak pH değeri: {ph_degeri}. "
+                            f"Bu yaprak görselini ve pH değerini Campbell Biology prensiplerine göre incele. "
+                            f"Kloroz, nekroz veya renk değişimleri varsa olası mineral eksikliğini (Demir, Azot, Fosfor, Magnezyum vb.) "
+                            f"ve bitki stres durumunu kısa, net ve bilimsel bir dille açıkla. Dil: {lang_code}"
+                        )
+                        
+                        with st.spinner(t["ai_loading"]):
+                            response = model.generate_content([image_part, prompt])
+                            st.info(f"**{t['ai_result']}**\n\n{response.text}")
+                except Exception as ex:
+                    st.error(f"AI Analiz Hatası: {ex}")
+
         submit = st.form_submit_button(t["send"])
         
         if submit:
