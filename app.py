@@ -22,7 +22,7 @@ except Exception as e:
     st.error(f"Yapılandırma hatası: {e}")
 
 st.title("🌱 Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı")
-st.write("Hoş geldiniz Hocam! Saha verileri, böcek analizleri, grafikler ve AI Agro Doctor bir arada.")
+st.write("Hoş geldiniz Hazreti Yusuf hocam! Saha verileri, böcek analizleri, grafikler ve AI Agro Doctor bir arada.")
 
 # Sekmeler
 tab1, tab2, tab3 = st.tabs(["📸 AI Agro Doctor & Gözlem", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafikler"])
@@ -91,30 +91,26 @@ with tab2:
         st.success("**Mücadele Yöntemleri:** Feromon tuzaklar ile kitle yakalama ve mekanik mücadele.")
 
 with tab3:
-    st.subheader("Saha Veri Yükleme ve Grafik Analizleri")
-    st.write("Excel veya CSV formatındaki saha ölçüm verilerinizi yükleyerek interaktif grafikler oluşturun.")
+    st.subheader("Saha Verileri ve Google E-Tablo Analizleri")
+    st.write("Google E-Tablolar üzerindeki saha ölçüm verileriniz otomatik olarak çekilmektedir.")
     
-    uploaded_data = st.file_uploader("Saha Veri Dosyasını Yükle (CSV veya Excel)", type=["csv", "xlsx"])
+    # Google E-Tablo CSV bağlantısı
+    sheet_url = "https://docs.google.com/spreadsheets/d/1Nd6NlzF74TFilv1QSnnsWC2Iqft5bWKf2qaKFX6C2No/export?format=csv"
     
-    if uploaded_data is not None:
-        try:
-            if uploaded_data.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_data)
-            else:
-                df = pd.read_excel(uploaded_data)
-                
-            st.write("### Yüklenen Veri Önizlemesi", df.head())
+    try:
+        df = pd.read_csv(sheet_url)
+        st.success("Google E-Tablo verileri başarıyla yüklendi!")
+        st.write("### Tablo Önizlemesi", df.head())
+        
+        # Grafik Çizdirme Alanı
+        st.write("### Veri Görselleştirme ve Grafikler")
+        kolonlar = df.columns.tolist()
+        secilen_x = st.selectbox("X Ekseni için sütun seçin:", kolonlar)
+        secilen_y = st.selectbox("Y Ekseni için sütun seçin:", kolonlar)
+        
+        if st.button("Grafik Oluştur"):
+            fig = px.bar(df, x=secilen_x, y=secilen_y, title="Saha Ölçüm Grafiği")
+            st.plotly_chart(fig, use_container_width=True)
             
-            # Grafik Çizdirme Alanı
-            st.write("### Veri Görselleştirme")
-            kolonlar = df.columns.tolist()
-            secilen_x = st.selectbox("X Ekseni için sütun seçin:", kolonlar)
-            secilen_y = st.selectbox("Y Ekseni için sütun seçin:", kolonlar)
-            
-            if st.button("Grafik Oluştur"):
-                fig = px.bar(df, x=secilen_x, y=secilen_y, title="Saha Ölçüm Grafiği")
-                st.plotly_chart(fig, use_container_width=True)
-        except Exception as e:
-            st.error(f"Veri okunurken hata oluştu: {e}")
-    else:
-        st.info("Henüz veri yüklenmedi. Örnek bir veri analizi için yukarıdan dosya yükleyebilirsiniz.")
+    except Exception as e:
+        st.error(f"Veriler yüklenirken bir hata oluştu: {e}")
