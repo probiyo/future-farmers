@@ -17,7 +17,7 @@ try:
         if api_key:
             genai.configure(api_key=api_key)
         else:
-            st.warning("API Anahtarı bulunamadı! AI özellikleri için secrets.toml dosyasını kontrol edin.")
+            st.warning("API Anahtarı bulunamadı!")
 except Exception as e:
     st.error(f"Yapılandırma hatası: {e}")
 
@@ -35,83 +35,79 @@ tab1, tab2, tab3 = st.tabs(["📸 Saha Gözlem & AI Doktor", "🐛 Böcek Bilgil
 
 with tab1:
     st.subheader("Saha Gözlem Verisi, İklim Faktörleri ve AI Analizi")
-    st.write("Önce telefonunuzdan fotoğraf çekin veya yükleyin, ardından form alanlarını doldurup analiz başlatın.")
     
     st.markdown("---")
-    st.info("💡 **Fotoğraf Çekme / Yükleme:** Aşağıdaki alandan telefonunuzun kamerasını doğrudan açarak fotoğraf çekebilir veya galerinizden seçebilirsiniz.")
+    st.info("💡 **1. Adım:** Aşağıdan fotoğrafınızı çekin veya yükleyin.")
     
-    uploaded_file = st.file_uploader("Bitki Yaprak veya Toprak Fotoğrafı Seç / Çek", type=["jpg", "jpeg", "png"])
+    # Formun tamamen dışında yer alan dosya yükleyici (Telefonda kamerasız/donma sorununu çözer)
+    uploaded_file = st.file_uploader("Bitki Yaprak veya Toprak Fotoğrafı Seç / Çek", type=["jpg", "jpeg", "png"], key="saha_foto_yukleyici")
     
     aktif_gorsel = None
     if uploaded_file is not None:
         aktif_gorsel = Image.open(uploaded_file)
         st.image(aktif_gorsel, caption="Yüklenen / Çekilen Saha Görseli", width=300)
 
-    with st.form("gelismis_saha_formu"):
-        col1, col2 = st.columns(2)
-        with col1:
-            tarih_input = st.date_input("Gözlem Tarihi")
-            
-            gozlem_turu_secimi = st.selectbox("İncelenen Bitki Türü", ["Çay Bitkisi", "Diğer Bitki (Bilimsel Adı Giriniz)"])
-            
-            bitki_adi = "Camellia sinensis (Çay)"
-            if "Diğer" in gozlem_turu_secimi:
-                bitki_adi = st.text_input("Bitkinin Bilimsel / Yerel Adı:", value="Örn: Quercus robur")
-                
-            rakim_input = st.number_input("Rakım (m)", min_value=0, max_value=5000, value=250)
-            
-        with col2:
-            hava_durumu = st.selectbox("Hava Durumu (İklimsel Takip)", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Karlı", "Don Tehlikesi"])
-            toprak_ph = st.number_input("Toprak pH Değeri", min_value=0.0, max_value=14.0, value=4.8, step=0.1)
+    st.markdown("---")
+    st.info("💡 **2. Adım:** Bilgileri doldurup analiz butonuna basın.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        tarih_input = st.date_input("Gözlem Tarihi")
+        gozlem_turu_secimi = st.selectbox("İncelenen Bitki Türü", ["Çay Bitkisi", "Diğer Bitki (Bilimsel Adı Giriniz)"])
         
-        ek_notlar = st.text_area("Öğrenci Gözlem Notları ve Ek Açıklamalar:")
+        bitki_adi = "Camellia sinensis (Çay)"
+        if "Diğer" in gozlem_turu_secimi:
+            bitki_adi = st.text_input("Bitkinin Bilimsel / Yerel Adı:", value="Örn: Quercus robur")
+            
+        rakim_input = st.number_input("Rakım (m)", min_value=0, max_value=5000, value=250)
         
-        submit_button = st.form_submit_button(label="AI ile Analiz Et ve Kaydet")
-        
-        if submit_button:
-            if aktif_gorsel is not None:
-                with st.spinner("Yapay zeka bitki fizyolojisini, iklim etkilerini ve MEB biyoloji kazanımlarını inceliyor..."):
-                    try:
-                        # En güncel ve kararlı model adı kullanıldı
-                        model = genai.GenerativeModel('gemini-2.0-flash')
-                        prompt = (
-                            "Sen uzman bir biyoloji ve tarım bilimleri danışmanısın. "
-                            f"İncelenen Bitki: {bitki_adi}, Rakım: {rakim_input}m, Hava Durumu: {hava_durumu}, "
-                            f"Toprak pH: {toprak_ph}, Öğrenci Notları: {ek_notlar}. "
-                            "Küresel iklim değişikliklerinin ve abiyotik faktörlerin bitki ve toprak ekolojisi üzerindeki "
-                            "etkilerini göz önüne alarak; 1) Stres Seviyesini (1-10 arası) ve nedenini, 2) Olası hastalık/besin element eksikliklerini, "
-                            "3) MEB biyoloji müfredatı ekoloji kazanımlarına uygun bilimsel açıklamaları, 4) Çözüm ve yönetim önerilerini maddeler halinde net olarak açıkla."
-                        )
-                        response = model.generate_content([prompt, aktif_gorsel])
-                        ai_sonuc = response.text
-                        
-                        stres_tahmini = "Yüksek / İncelendi" if "Stres" in ai_sonuc else "Normal"
-                        
-                        st.success("Analiz Tamamlandı!")
-                        st.markdown("### 🩺 AI Uzman Ekoloji Raporu")
-                        st.write(ai_sonuc)
-                        
-                        yeni_veri = {
-                            "Tarih": str(tarih_input),
-                            "Bitki Adı / Türü": bitki_adi,
-                            "Rakım (m)": rakim_input,
-                            "Hava Durumu": hava_durumu,
-                            "Toprak pH": toprak_ph,
-                            "Stres Seviyesi": stres_tahmini,
-                            "AI Analiz ve Öneriler": ai_sonuc
-                        }
-                        st.session_state.saha_verileri = pd.concat([st.session_state.saha_verileri, pd.DataFrame([yeni_veri])], ignore_index=True)
-                        st.info("Saha verisi başarıyla alt tabloya ve grafik arşivine eklendi!")
-                        
-                    except Exception as e:
-                        st.error(f"AI analizi sırasında hata oluştu: {e}")
-            else:
-                st.warning("Lütfen önce yukarıdan bir fotoğraf yükleyin veya kameradan çekin!")
+    with col2:
+        hava_durumu = st.selectbox("Hava Durumu (İklimsel Takip)", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Karlı", "Don Tehlikesi"])
+        toprak_ph = st.number_input("Toprak pH Değeri", min_value=0.0, max_value=14.0, value=4.8, step=0.1)
+    
+    ek_notlar = st.text_area("Öğrenci Gözlem Notları ve Ek Açıklamalar:")
+    
+    if st.button("AI ile Analiz Et ve Kaydet", type="primary"):
+        if aktif_gorsel is not None:
+            with st.spinner("Yapay zeka bitki fizyolojisini, iklim etkilerini ve MEB biyoloji kazanımlarını inceliyor..."):
+                try:
+                    model = genai.GenerativeModel('gemini-2.0-flash')
+                    prompt = (
+                        "Sen uzman bir biyoloji ve tarım bilimleri danışmanısın. "
+                        f"İncelenen Bitki: {bitki_adi}, Rakım: {rakim_input}m, Hava Durumu: {hava_durumu}, "
+                        f"Toprak pH: {toprak_ph}, Öğrenci Notları: {ek_notlar}. "
+                        "Küresel iklim değişikliklerinin ve abiyotik faktörlerin bitki ve toprak ekolojisi üzerindeki "
+                        "etkilerini göz önüne alarak; 1) Stres Seviyesini (1-10 arası) ve nedenini, 2) Olası hastalık/besin element eksikliklerini, "
+                        "3) MEB biyoloji müfredatı ekoloji kazanımlarına uygun bilimsel açıklamaları, 4) Çözüm ve yönetim önerilerini maddeler halinde net olarak açıkla."
+                    )
+                    response = model.generate_content([prompt, aktif_gorsel])
+                    ai_sonuc = response.text
+                    
+                    stres_tahmini = "Yüksek / İncelendi" if "Stres" in ai_sonuc else "Normal"
+                    
+                    st.success("Analiz Tamamlandı!")
+                    st.markdown("### 🩺 AI Uzman Ekoloji Raporu")
+                    st.write(ai_sonuc)
+                    
+                    yeni_veri = {
+                        "Tarih": str(tarih_input),
+                        "Bitki Adı / Türü": bitki_adi,
+                        "Rakım (m)": rakim_input,
+                        "Hava Durumu": hava_durumu,
+                        "Toprak pH": toprak_ph,
+                        "Stres Seviyesi": stres_tahmini,
+                        "AI Analiz ve Öneriler": ai_sonuc
+                    }
+                    st.session_state.saha_verileri = pd.concat([st.session_state.saha_verileri, pd.DataFrame([yeni_veri])], ignore_index=True)
+                    st.info("Saha verisi başarıyla alt tabloya ve grafik arşivine eklendi!")
+                    
+                except Exception as e:
+                    st.error(f"AI analizi sırasında hata oluştu: {e}")
+        else:
+            st.warning("Lütfen önce yukarıdan bir fotoğraf yükleyin veya kameradan çekin!")
 
 with tab2:
     st.subheader("Böcek Bilgileri ve Zararlı Seçimleri")
-    st.write("Saha çalışmalarında karşılaşılan zararlılar ve entegre mücadele kriterleri:")
-    
     bocek_secimi = st.selectbox(
         "İncelemek istediğiniz zararlıyı seçin:",
         ["Yeşil Kurt (Helicoverpa armigera)", "Yaprak Bitleri (Aphididae)", "Kırmızı Örümcek (Tetranychidae)", "Kahverengi Kokarca"]
@@ -132,7 +128,6 @@ with tab2:
 
 with tab3:
     st.subheader("📊 Kayıtlı Saha Verileri ve Grafik Analizleri")
-    
     if not st.session_state.saha_verileri.empty:
         st.dataframe(st.session_state.saha_verileri, use_container_width=True)
         
@@ -151,4 +146,4 @@ with tab3:
         fig = px.bar(st.session_state.saha_verileri, x="Tarih", y=secilen_y, color="Hava Durumu", title=f"Tarihe Göre {secilen_y} ve İklim Dağılımı")
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Henüz girilmiş bir saha verisi bulunmuyor. 'Saha Gözlem & AI Doktor' sekmesinden ilk verinizi ekleyebilirsiniz.")
+        st.info("Henüz girilmiş bir saha verisi bulunmuyor.")
