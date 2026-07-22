@@ -24,6 +24,12 @@ except Exception as e:
 st.title("🌱 Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı")
 st.write("Hoş geldiniz Hazreti Yusuf hocam! Saha verileri, böcek analizleri, grafikler ve AI Agro Doctor bir arada.")
 
+# Oturum durumunda veri deposu (Saha Verileri için)
+if "saha_verileri" not in st.session_state:
+    st.session_state.saha_verileri = pd.DataFrame(columns=[
+        "Tarih", "Gözlem Türü", "Rakım (m)", "Hava Durumu", "Stres Seviyesi (1-10)", "Notlar ve Açıklamalar"
+    ])
+
 # Sekmeler
 tab1, tab2, tab3 = st.tabs(["📸 AI Agro Doctor & Gözlem", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafikler"])
 
@@ -91,32 +97,58 @@ with tab2:
         st.success("**Mücadele Yöntemleri:** Feromon tuzaklar ile kitle yakalama ve mekanik mücadele.")
 
 with tab3:
-    st.subheader("Saha Veri Yükleme ve Grafik Analizleri")
-    st.write("Saha ölçüm verilerinizi (Excel veya CSV olarak) yükleyerek interaktif tablolar ve grafikler oluşturun.")
+    st.subheader("Saha Gözlem Verisi Girişi ve Otomatik Analizler")
+    st.write("Öğrenciler sahada yaptıkları gözlemleri aşağıdan kaydederek anında analiz, yorum ve grafik oluşturabilirler.")
     
-    uploaded_data = st.file_uploader("Saha Veri Dosyasını Yükle (CSV veya XLSX)", type=["csv", "xlsx"])
+    with st.form("saha_formu"):
+        col1, col2 = st.columns(2)
+        with col1:
+            tarih_input = st.date_input("Gözlem Tarihi")
+            gozlem_turu = st.selectbox("Gözlem Türü", ["Çay Bitkisi", "Toprak Analizi", "Zararlı/Böcek Tespiti", "Hastalık Belirtisi", "Diğer"])
+            rakim_input = st.number_input("Rakım (m)", min_value=0, max_value=5000, value=200)
+        with col2:
+            hava_durumu = st.selectbox("Hava Durumu", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Karlı", "Don Tehlikesi"])
+            stres_input = st.slider("Stres Skoru (1-10)", 1, 10, 3)
+        
+        aciklama_input = st.text_area("Açıklamalar, Gözlemler ve Notlar")
+        
+        submit_button = st.form_submit_button(label="Saha Verisini Kaydet ve Analiz Et")
+        
+        if submit_button:
+            yeni_veri = {
+                "Tarih": str(tarih_input),
+                "Gözlem Türü": gozlem_turu,
+                "Rakım (m)": rakim_input,
+                "Hava Durumu": hava_durumu,
+                "Stres Seviyesi (1-10)": stres_input,
+                "Notlar ve Açıklamalar": aciklama_input
+            }
+            st.session_state.saha_verileri = pd.concat([st.session_state.saha_verileri, pd.DataFrame([yeni_veri])], ignore_index=True)
+            st.success("Saha verisi başarıyla kaydedildi ve sisteme işlendi!")
+
+    st.markdown("---")
+    st.subheader("📊 Kayıtlı Saha Verileri ve Grafik Analizleri")
     
-    if uploaded_data is not None:
-        try:
-            if uploaded_data.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_data)
-            else:
-                df = pd.read_excel(uploaded_data)
-                
-            st.success("Veriler başarıyla yüklendi!")
-            st.write("### Tablo Önizlemesi", df.head())
+    if not st.session_state.saha_verileri.empty:
+        st.dataframe(st.session_state.saha_verileri, use_container_width=True)
+        
+        csv_data = st.session_state.saha_verileri.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Tüm Saha Verilerini CSV Olarak İndir (Google E-Tabloya Aktar)",
+            data=csv_data,
+            file_name="future_farmers_saha_verileri.csv",
+            mime="text/csv",
+        )
+        
+        st.write("### Veri Görselleştirme")
+        kolonlar = st.session_state.saha_verileri.columns.tolist()
+        c1, c2 = st.columns(2)
+        with c1:
+            secilen_x = st.selectbox("X Ekseni:", kolonlar, index=0)
+        with c2:
+            secilen_y = st.selectbox("Y Ekseni:", kolonlar, index=4 if len(kolonlar) > 4 else 0)
             
-            # Grafik Çizdirme Alanı
-            st.write("### Veri Görselleştirme ve Grafikler")
-            kolonlar = df.columns.tolist()
-            secilen_x = st.selectbox("X Ekseni için sütun seçin:", kolonlar)
-            secilen_y = st.selectbox("Y Ekseni için sütun seçin:", kolonlar)
-            
-            if st.button("Grafik Oluştur"):
-                fig = px.bar(df, x=secilen_x, y=secilen_y, title="Saha Ölçüm Grafiği")
-                st.plotly_chart(fig, use_container_width=True)
-                
-        except Exception as e:
-            st.error(f"Veriler okunurken bir hata oluştu: {e}")
+        fig = px.bar(st.session_state.saha_verileri, x=secilen_x, y=secilen_y, color="Gözlem Türü", title="Saha Ölçüm ve Stres Dağılım Grafiği")
+        st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Henüz veri yüklenmedi. Örnek bir veri analizi için yukarıdan dosya yükleyebilirsiniz.")
+        st.info("Henüz girilmiş bir saha verisi bulunmuyor. Yukarıdaki formu doldurarak ilk verinizi ekleyebilirsiniz.")
