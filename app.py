@@ -24,19 +24,13 @@ except Exception as e:
     st.error(f"Yapılandırma hatası: {e}")
 
 st.title("🌱 Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı")
-st.write("Hoş geldiniz Hazreti Yusuf hocam! İklim değişimlerinin çay ve toprak ekolojisine etkisini inceleyen akıllı saha takip sistemi.")
+st.write("Hoş geldiniz Hazreti Yusuf hocam! İklim değişimlerinin çay ve bitki ekolojisine etkisini inceleyen akıllı saha takip sistemi.")
 
 # Oturum durumunda veri deposu
 if "saha_verileri" not in st.session_state:
     st.session_state.saha_verileri = pd.DataFrame(columns=[
-        "Tarih", "Gözlem Türü", "Rakım (m)", "Hava Durumu", "Toprak pH", "Stres Seviyesi", "AI Analiz ve Öneriler"
+        "Tarih", "Bitki Adı / Türü", "Rakım (m)", "Hava Durumu", "Toprak pH", "Stres Seviyesi", "AI Analiz ve Öneriler"
     ])
-
-# Yardımcı fonksiyon: Görseli base64'e çevirme
-def image_to_base64(img):
-    buffered = BytesIO()
-    img.save(buffered, format="JPEG")
-    return base64.b64encode(buffered.getvalue()).decode()
 
 # Sekmeler
 tab1, tab2, tab3 = st.tabs(["📸 Saha Gözlem & AI Doktor", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafik Analizleri"])
@@ -49,13 +43,20 @@ with tab1:
         col1, col2 = st.columns(2)
         with col1:
             tarih_input = st.date_input("Gözlem Tarihi")
-            gozlem_turu = st.selectbox("Gözlem Türü", ["Çay Bitkisi", "Toprak Analizi", "Zararlı / Böcek Tespiti", "Hastalık Belirtisi", "Diğer"])
+            
+            # Gözlem türü sadeleştirildi: Çay Bitkisi veya Diğer (Bilimsel İsim)
+            gozlem_turu_secimi = st.selectbox("İncelenen Bitki Türü", ["Çay Bitkisi", "Diğer Bitki (Bilimsel Adı Giriniz)"])
+            
+            bitki_adi = "Camellia sinensis (Çay)"
+            if "Diğer" in gozlem_turu_secimi:
+                bitki_adi = st.text_input("Bitkinin Bilimsel / Yerel Adı:", value="Örn: Quercus robur")
+                
             rakim_input = st.number_input("Rakım (m)", min_value=0, max_value=5000, value=250)
+            
         with col2:
             hava_durumu = st.selectbox("Hava Durumu (İklimsel Takip)", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Karlı", "Don Tehlikesi"])
-            toprak_ph = st.number_input("Toprak pH Değeri (Örn: 4.5 - 5.5 Çay için ideal)", min_value=0.0, max_value=14.0, value=4.8, step=0.1)
+            toprak_ph = st.number_input("Toprak pH Değeri", min_value=0.0, max_value=14.0, value=4.8, step=0.1)
         
-        # Dinamik Alanlar
         st.markdown("---")
         upload_option = st.radio("Görüntü Kaynağı:", ["Fotoğraf Yükle", "Kameradan Çek"])
         
@@ -84,26 +85,24 @@ with tab1:
                         model = genai.GenerativeModel('gemini-1.5-flash')
                         prompt = (
                             "Sen uzman bir biyoloji ve tarım bilimleri danışmanısın. "
-                            f"Gözlem Türü: {gozlem_turu}, Rakım: {rakim_input}m, Hava Durumu: {hava_durumu}, "
+                            f"İncelenen Bitki: {bitki_adi}, Rakım: {rakim_input}m, Hava Durumu: {hava_durumu}, "
                             f"Toprak pH: {toprak_ph}, Öğrenci Notları: {ek_notlar}. "
-                            "Küresel iklim değişikliklerinin ve abiyotik faktörlerin çay bitkisi ve toprak ekolojisi üzerindeki "
+                            "Küresel iklim değişikliklerinin ve abiyotik faktörlerin bitki ve toprak ekolojisi üzerindeki "
                             "etkilerini göz önüne alarak; 1) Stres Seviyesini (1-10 arası) ve nedenini, 2) Olası hastalık/besin element eksikliklerini, "
                             "3) MEB biyoloji müfredatı ekoloji kazanımlarına uygun bilimsel açıklamaları, 4) Çözüm ve yönetim önerilerini maddeler halinde net olarak açıkla."
                         )
                         response = model.generate_content([prompt, aktif_gorsel])
                         ai_sonuc = response.text
                         
-                        # Stres seviyesini yanıttan basitçe çıkaralım veya varsayılan atayalım
                         stres_tahmini = "Yüksek / İncelendi" if "Stres" in ai_sonuc else "Normal"
                         
                         st.success("Analiz Tamamlandı!")
                         st.markdown("### 🩺 AI Uzman Ekoloji Raporu")
                         st.write(ai_sonuc)
                         
-                        # Veriyi oturum tablosuna ekle
                         yeni_veri = {
                             "Tarih": str(tarih_input),
-                            "Gözlem Türü": gozlem_turu,
+                            "Bitki Adı / Türü": bitki_adi,
                             "Rakım (m)": rakim_input,
                             "Hava Durumu": hava_durumu,
                             "Toprak pH": toprak_ph,
