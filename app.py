@@ -94,8 +94,9 @@ with tab3:
     st.subheader("Saha Verileri ve Google E-Tablo Analizleri")
     st.write("Google E-Tablolar üzerindeki saha ölçüm verileriniz otomatik olarak çekilmektedir.")
     
-    # Google E-Tablo CSV bağlantısı
-    sheet_url = "https://docs.google.com/spreadsheets/d/1Nd6NlzF74TFilv1QSnnsWC2Iqft5bWKf2qaKFX6C2No/export?format=csv"
+    # Doğru formatta Google E-Tablo CSV export linki
+    sheet_id = "1Nd6NlzF74TFilv1QSnnsWC2Iqft5bWKf2qaKFX6C2No"
+    sheet_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
     
     try:
         df = pd.read_csv(sheet_url)
