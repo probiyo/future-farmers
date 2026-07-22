@@ -8,20 +8,6 @@ import os
 # Sayfa yapılandırması
 st.set_page_config(page_title="Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı", page_icon="🌱", layout="wide")
 
-# Kamerayı küçültmek için özel CSS
-st.markdown("""
-    <style>
-    [data-testid="stCameraInput"] video {
-        max-width: 350px !important;
-        border-radius: 10px;
-    }
-    [data-testid="stCameraInput"] img {
-        max-width: 350px !important;
-        border-radius: 10px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 # API Anahtarı Ayarı
 try:
     if "GEMINI_API_KEY" in st.secrets:
@@ -44,12 +30,12 @@ if "saha_verileri" not in st.session_state:
         "Tarih", "Bitki Adı / Türü", "Rakım (m)", "Hava Durumu", "Toprak pH", "Stres Seviyesi", "AI Analiz ve Öneriler"
     ])
 
-# Sekmeler (Hatayı çözen temiz tanım)
+# Sekmeler
 tab1, tab2, tab3 = st.tabs(["📸 Saha Gözlem & AI Doktor", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafik Analizleri"])
 
 with tab1:
     st.subheader("Saha Gözlem Verisi, İklim Faktörleri ve AI Analizi")
-    st.write("Öğrenciler sahada hava durumunu, rakımı, toprak pH değerini girer; bitki fotoğrafını yükleyerek veya kameradan çekerek yapay zekanın ekolojik analiziyle otomatik rapor oluşturur.")
+    st.write("Öğrenciler sahada hava durumunu, rakımı, toprak pH değerini girer; fotoğraf yükleyerek veya kameradan çekerek yapay zekanın ekolojik analiziyle otomatik rapor oluşturur.")
     
     with st.form("gelismis_saha_formu"):
         col1, col2 = st.columns(2)
@@ -69,30 +55,19 @@ with tab1:
             toprak_ph = st.number_input("Toprak pH Değeri", min_value=0.0, max_value=14.0, value=4.8, step=0.1)
         
         st.markdown("---")
-        upload_option = st.radio("Görüntü Kaynağı:", ["Dosya Yükle / Telefondan Seç", "Kameradan Canlı Çek"])
+        st.info("💡 **Fotoğraf Çekme / Yükleme:** Aşağıdaki alandan telefonunuzun kamerasını doğrudan açarak fotoğraf çekebilir veya galerinizden seçebilirsiniz.")
         
-        uploaded_file = None
-        camera_file = None
-        
-        if upload_option == "Dosya Yükle / Telefondan Seç":
-            uploaded_file = st.file_uploader("Bitki yaprak, kök veya toprak yüzeyi fotoğrafı seçin...", type=["jpg", "jpeg", "png"])
-        else:
-            st.info("Kamerayı kullanmak için tarayıcınızın kamera iznine izin vermeniz gerekebilir.")
-            camera_file = st.camera_input("Kamera (Fotoğraf Çekmek İçin Tıklayın)")
+        uploaded_file = st.file_uploader("Bitki Yaprak veya Toprak Fotoğrafı Seç / Çek", type=["jpg", "jpeg", "png"])
             
         ek_notlar = st.text_area("Öğrenci Gözlem Notları ve Ek Açıklamalar:")
         
         submit_button = st.form_submit_button(label="AI ile Analiz Et ve Kaydet")
         
         if submit_button:
-            aktif_gorsel = None
             if uploaded_file is not None:
                 aktif_gorsel = Image.open(uploaded_file)
-            elif camera_file is not None:
-                aktif_gorsel = Image.open(camera_file)
-                
-            if aktif_gorsel is not None:
                 st.image(aktif_gorsel, caption="Analiz Edilen Saha Görseli", width=300)
+                
                 with st.spinner("Yapay zeka bitki fizyolojisini, iklim etkilerini ve MEB biyoloji kazanımlarını inceliyor..."):
                     try:
                         model = genai.GenerativeModel('gemini-1.5-flash')
@@ -128,7 +103,7 @@ with tab1:
                     except Exception as e:
                         st.error(f"AI analizi sırasında hata oluştu: {e}")
             else:
-                st.warning("Lütfen analiz için bir fotoğraf yükleyin veya kameradan çekin!")
+                st.warning("Lütfen analiz için bir fotoğraf yükleyin veya kameradan çekip ekleyin!")
 
 with tab2:
     st.subheader("Böcek Bilgileri ve Zararlı Seçimleri")
@@ -166,7 +141,7 @@ with tab3:
             mime="text/csv",
         )
         
-        st.write("### İklim ve Toprak Verisi Görselleştirme")
+        st.write("### İklim and Toprak Verisi Görselleştirme")
         kolonlar = ["Rakım (m)", "Toprak pH"]
         secilen_y = st.selectbox("Grafik Değeri Seçin:", kolonlar)
         
