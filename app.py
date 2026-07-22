@@ -8,7 +8,7 @@ import os
 # Sayfa yapılandırması
 st.set_page_config(page_title="Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı", page_icon="🌱", layout="wide")
 
-# Kamerayı küçültmek için özel CSS (Koca bir ekranı kaplamaması için)
+# Kamerayı küçültmek için özel CSS
 st.markdown("""
     <style>
     [data-testid="stCameraInput"] video {
@@ -44,8 +44,8 @@ if "saha_verileri" not in st.session_state:
         "Tarih", "Bitki Adı / Türü", "Rakım (m)", "Hava Durumu", "Toprak pH", "Stres Seviyesi", "AI Analiz ve Öneriler"
     ])
 
-# Sekmeler
-tab1, tab2, tab3 = tab3 = st.tabs(["📸 Saha Gözlem & AI Doktor", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafik Analizleri"])
+# Sekmeler (Hatayı çözen temiz tanım)
+tab1, tab2, tab3 = st.tabs(["📸 Saha Gözlem & AI Doktor", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafik Analizleri"])
 
 with tab1:
     st.subheader("Saha Gözlem Verisi, İklim Faktörleri ve AI Analizi")
