@@ -1,205 +1,120 @@
 import streamlit as st
+import google.generativeai as genai
+from PIL import Image
 import pandas as pd
 import plotly.express as px
-import requests
-import datetime
-import base64
-import io
-import google.generativeai as genai
+import os
 
-# --- DİL AYARLARI ---
-LANGS = {
-    "TR": {
-        "title": "🌱 Future Farmers: Bilimsel Gözlem",
-        "tab1": "Gözlem Kaydı", "tab2": "Veri Analizi",
-        "region": "Bölge Seçiniz", "plant": "Bitki Türü",
-        "alt": "Rakım (metre)", "weather": "Hava Durumu",
-        "stress": "Stres Skoru (1-5)", "pest": "Tespit Edilen Zararlı",
-        "ph": "PH Değeri", "notes": "Notlar", "cam": "Fotoğraf Çek",
-        "send": "Veriyi Gönder", "success": "Veri başarıyla gönderildi!",
-        "error": "Hata oluştu", "analysis": "📈 Ekolojik Analiz",
-        "metric": "Ortalama Stres Skoru", "chart1": "Rakım ve Stres İlişkisi",
-        "chart2": "Türlere Göre pH Dağılımı",
-        "analysis_header": "📊 Veri Analizi Yorumu",
-        "stress_high": "Dikkat: Ortalama stres skoru yüksek seyrediyor. Bölgesel iyileştirme çalışmaları önerilir.",
-        "stress_normal": "Analiz edilen verilerde stres seviyeleri normal sınırlar içerisinde.",
-        "summary": "**Özet:** Veri setinde toplam {count} gözlem bulunmaktadır. pH değerleri, gözlem türlerine göre stabilite göstermektedir.",
-        "no_data": "Henüz yeterli veri girişi yapılmamış.",
-        "sheet_error": "E-Tabloya ulaşılamadı. Hata kodu: {code}",
-        "weather_options": ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Karlı", "Don"],
-        "plants": {"Çay Bitkisi": "Çay Bitkisi", "Cucumis sativus": "Cucumis sativus", "Diğer": "Diğer"},
-        "ai_btn": "🤖 AI Agro Doctor ile Fotoğrafı Analiz Et",
-        "ai_loading": "Bitki fizyolojisi ve pH değerleri analiz ediliyor...",
-        "ai_result": "🌿 AI Agro Doctor Tanı Raporu:"
-    },
-    "EN": {
-        "title": "🌱 Future Farmers: Scientific Observation",
-        "tab1": "Observation Record", "tab2": "Data Analysis",
-        "region": "Select Region", "plant": "Plant Type",
-        "alt": "Altitude (meters)", "weather": "Weather",
-        "stress": "Stress Score (1-5)", "pest": "Detected Pest",
-        "ph": "PH Value", "notes": "Notes", "cam": "Take Photo",
-        "send": "Send Data", "success": "Data sent successfully!",
-        "error": "An error occurred", "analysis": "📈 Ecological Analysis",
-        "metric": "Average Stress Score", "chart1": "Altitude vs Stress Relation",
-        "chart2": "pH Distribution by Species",
-        "analysis_header": "📊 Data Analysis Commentary",
-        "stress_high": "Attention: The average stress score is high. Regional improvement works are recommended.",
-        "stress_normal": "Stress levels in the analyzed data are within normal limits.",
-        "summary": "**Summary:** There are a total of {count} observations in the dataset. pH values show stability according to observation types.",
-        "no_data": "Not enough data entered yet.",
-        "sheet_error": "Could not reach Spreadsheet. Error code: {code}",
-        "weather_options": ["Sunny", "Cloudy", "Rainy", "Foggy", "Snowy", "Frost"],
-        "plants": {"Çay Bitkisi": "Tea Plant", "Cucumis sativus": "Cucumis sativus", "Diğer": "Other"},
-        "ai_btn": "🤖 Analyze Photo with AI Agro Doctor",
-        "ai_loading": "Analyzing plant physiology and pH levels...",
-        "ai_result": "🌿 AI Agro Doctor Diagnostic Report:"
-    }
-}
+# Sayfa yapılandırması
+st.set_page_config(page_title="Future Farmers Pro - Biyoloji & Tarım Asistanı", page_icon="🌱", layout="wide")
 
-# --- CSS: KAMERA BOYUTLANDIRMA ---
-st.markdown("""
-    <style>
-    [data-testid="stCameraInput"] {
-        max-width: 300px;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# API Anahtarı Ayarı
+try:
+    if "GEMINI_API_KEY" in st.secrets:
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    else:
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if api_key:
+            genai.configure(api_key=api_key)
+        else:
+            st.warning("API Anahtarı bulunamadı! AI özellikleri için secrets.toml dosyasını kontrol edin.")
+except Exception as e:
+    st.error(f"Yapılandırma hatası: {e}")
 
-# --- YAPILANDIRMA ---
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzL_m9kH6d3kM1J25G5h2Y6hR_4z8pX3w/exec"
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnBOJfkLuOrZyDQyhtMtcXgFYwfiu0OFaJfQUC9EpWajKGUcee2lzT8r1aNasf7xjiRdk3tTgXdj9o/pub?gid=0&single=true&output=csv"
+st.title("🌱 Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı")
+st.write("Hoş geldiniz Hocam! Saha verileri, böcek analizleri, grafikler ve AI Agro Doctor bir arada.")
 
-def get_plants(lang):
-    return {
-        "Türkiye": {
-            LANGS[lang]["plants"]["Çay Bitkisi"]: ["Yok", "Çay Filiz Güvesi", "Çay Koşnili", "Vampir Kelebek", "Kahverengi Kokarca"],
-            LANGS[lang]["plants"]["Cucumis sativus"]: ["Yok", "Yaprak Biti", "Kırmızı Örümcek", "Beyaz Sinek", "Salatalık Mildiyösü"],
-            LANGS[lang]["plants"]["Diğer"]: ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
-        },
-        "Belçika": {
-            "Brassica oleracea (Brüksel Lahanası)": ["Yok", "Yaprak Biti (Aphids)", "Lahana Güvesi", "Toprak Piresi", "Salyangoz"],
-            LANGS[lang]["plants"]["Diğer"]: ["Yok", "Bölgesel Zararlı Gözlemlenmedi"]
-        }
-    }
-
-st.set_page_config(page_title="Future Farmers Pro", page_icon="🌱", layout="wide")
-
-lang_code = st.sidebar.selectbox("Language / Dil", ["TR", "EN"])
-t = LANGS[lang_code]
-PEST_DATABASE = get_plants(lang_code)
-
-st.title(t["title"])
-
-tab1, tab2 = st.tabs([t["tab1"], t["tab2"]])
+# Sekmeler (Tüm modülleri topladık)
+tab1, tab2, tab3 = st.tabs(["📸 AI Agro Doctor & Gözlem", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafikler"])
 
 with tab1:
-    ulke = st.selectbox(t["region"], list(PEST_DATABASE.keys()))
-    bitki_turu = st.selectbox(t["plant"], list(PEST_DATABASE[ulke].keys()))
+    st.subheader("Bitki Sağlığı, Stres Analizi ve Yapay Zeka Doktoru")
     
-    with st.form("main_form", clear_on_submit=True):
-        rakim = st.number_input(t["alt"], 0, 2000, 200)
-        hava = st.selectbox(t["weather"], t["weather_options"])
-        
-        stres = st.slider(t["stress"], 1, 5, 1)
-        if lang_code == "TR":
-            st.caption("1: Çok Sağlıklı | 2: Hafif Stres | 3: Orta Düzey Stres | 4: Yüksek Stres | 5: Kritik (Acil Müdahale Gerekli)")
-        else:
-            st.caption("1: Very Healthy | 2: Mild Stress | 3: Moderate Stress | 4: High Stress | 5: Critical (Urgent Intervention Needed)")
-            
-        zararli_turu = st.selectbox(t["pest"], PEST_DATABASE[ulke][bitki_turu])
-        ph_degeri = st.number_input(t["ph"], 0.0, 14.0, 7.0)
-        notlar = st.text_area(t["notes"])
-        foto = st.camera_input(t["cam"])
-        
-        # --- AI AGRO DOCTOR ENTEGRASYONU ---
-        ai_analiz_tetiklendi = st.form_submit_button(t["ai_btn"])
-        
-        if ai_analiz_tetiklendi:
-            if not foto:
-                st.warning("Lütfen önce bir fotoğraf çekin! / Please take a photo first!")
-            else:
-                try:
-                    # Streamlit secrets içerisinden API anahtarını güvenle çeker
-                    api_key = st.secrets.get("GEMINI_API_KEY", "")
-                    if not api_key:
-                        st.error("GEMINI_API_KEY bulunamadı! Lütfen Streamlit secrets ayarlarına ekleyin.")
-                    else:
-                        genai.configure(api_key=api_key)
-                        model = genai.GenerativeModel('gemini-1.5-flash')
-                        
-                        image_bytes = foto.getvalue()
-                        image_part = {
-                            "mime_type": "image/jpeg",
-                            "data": image_bytes
-                        }
-                        
-                        prompt = (
-                            f"Sen uzman bir ziraat mühendisi ve bitki fizyoloğusun. "
-                            f"Bitki türü: {bitki_turu}, Toprak pH değeri: {ph_degeri}. "
-                            f"Bu yaprak görselini ve pH değerini Campbell Biology prensiplerine göre incele. "
-                            f"Kloroz, nekroz veya renk değişimleri varsa olası mineral eksikliğini (Demir, Azot, Fosfor, Magnezyum vb.) "
-                            f"ve bitki stres durumunu kısa, net ve bilimsel bir dille açıkla. Dil: {lang_code}"
-                        )
-                        
-                        with st.spinner(t["ai_loading"]):
-                            response = model.generate_content([image_part, prompt])
-                            st.info(f"**{t['ai_result']}**\n\n{response.text}")
-                except Exception as ex:
-                    st.error(f"AI Analiz Hatası: {ex}")
+    upload_option = st.radio("Görüntü Kaynağı:", ["Fotoğraf Yükle", "Kameradan Çek"])
+    
+    image = None
+    if upload_option == "Fotoğraf Yükle":
+        uploaded_file = st.file_uploader("Bitki yaprak veya kök fotoğraflarını seçin...", type=["jpg", "jpeg", "png"])
+        if uploaded_file is not None:
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Yüklenen Bitki Görseli", use_column_width=True)
+    else:
+        camera_file = st.camera_input("Kameradan Çek")
+        if camera_file is not None:
+            image = Image.open(camera_file)
+            st.image(image, caption="Çekilen Bitki Görseli", use_column_width=True)
 
-        submit = st.form_submit_button(t["send"])
-        
-        if submit:
-            payload = {
-                "Tarih": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Gozlem_Turu": f"{ulke} - {bitki_turu}",
-                "Rakim": rakim,
-                "Hava_Durumu": hava,
-                "Stres_Skoru": stres,
-                "Notlar": f"{notlar} | Zararlı: {zararli_turu}",
-                "PH": ph_degeri,
-                "Foto_Base64": "Test_Verisi" if not foto else base64.b64encode(foto.read()).decode()
-            }
-            try:
-                requests.post(WEB_APP_URL, json=payload, timeout=15)
-                st.success(t["success"])
-            except Exception as e:
-                st.error(f"{t['error']}: {e}")
+    rakim = st.number_input("Rakım (metre)", min_value=0, max_value=5000, value=0)
+    stres_skoru = st.slider("Tahmini Stres Seviyesi (1-10)", 1, 10, 1)
+    notlar = st.text_area("Eklemek istediğiniz gözlemler veya notlar:")
+
+    if st.button("AI Agro Doctor ile Analiz Et"):
+        if image is not None:
+            with st.spinner("Yapay zeka bitki fizyolojisini inceliyor..."):
+                try:
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    prompt = (
+                        "Sen uzman bir tarım ve bitki fizyolojisi doktorusun. "
+                        f"Rakım: {rakim}m, Gözlenen Stres Seviyesi: {stres_skoru}/10, Notlar: {notlar}. "
+                        "Lütfen bu bitki görselini ve verileri inceleyerek olası hastalıkları, besin element eksikliklerini "
+                        "ve çözüm önerilerini maddeler halinde net ve somut örneklerle açıkla."
+                    )
+                    response = model.generate_content([prompt, image])
+                    st.success("Analiz Tamamlandı!")
+                    st.markdown("### 🩺 Uzman Raporu")
+                    st.write(response.text)
+                except Exception as e:
+                    st.error(f"Analiz sırasında bir hata oluştu: {e}")
+        else:
+            st.warning("Lütfen önce bir bitki görseli yükleyin veya çekin!")
 
 with tab2:
-    st.header(t["analysis"])
-    try:
-        response = requests.get(SHEET_CSV_URL, timeout=10)
-        if response.status_code == 200:
-            df = pd.read_csv(io.StringIO(response.text))
-            df = df.dropna(subset=['Rakim', 'Stres_Skoru', 'PH', 'Gozlem_Turu'])
-            df['Rakim'] = pd.to_numeric(df['Rakim'], errors='coerce')
-            df['Stres_Skoru'] = pd.to_numeric(df['Stres_Skoru'], errors='coerce')
-            df['PH'] = pd.to_numeric(df['PH'], errors='coerce')
-            
-            if not df.empty:
-                fig1 = px.scatter(df, x="Rakim", y="Stres_Skoru", color="Hava_Durumu", size="Stres_Skoru", title=t["chart1"])
-                st.plotly_chart(fig1, use_container_width=True)
-                
-                avg_stres = df['Stres_Skoru'].mean()
-                st.metric(t["metric"], f"{avg_stres:.2f}")
-                
-                fig2 = px.box(df, x="Gozlem_Turu", y="PH", title=t["chart2"], color="Gozlem_Turu")
-                fig2.update_layout(xaxis={'categoryorder':'total ascending'})
-                st.plotly_chart(fig2, use_container_width=True)
-                
-                st.subheader(t["analysis_header"])
-                if avg_stres > 3:
-                    st.warning(t["stress_high"])
-                else:
-                    st.success(t["stress_normal"])
-                
-                st.markdown(t["summary"].format(count=len(df)))
+    st.subheader("Böcek Bilgileri ve Zararlı Seçimleri")
+    st.write("Saha çalışmalarında karşılaşılan zararlılar ve entegre mücadele kriterleri:")
+    
+    bocek_secimi = st.selectbox(
+        "İncelemek istediğiniz zararlıyı seçin:",
+        ["Yeşil Kurt (Helicoverpa armigera)", "Yaprak Bitleri (Aphididae)", "Kırmızı Örümcek (Tetranychidae)", "Kahverengi Kokarca"]
+    )
+    
+    if "Yeşil Kurt" in bocek_secimi:
+        st.info("**Biyolojisi ve Zararı:** Polifag bir zararlıdır. Larvaları bitkinin generatif organları (çiçek ve meyve) ile beslenir.")
+        st.success("**Mücadele Yöntemleri:** Biyoteknolojik mücadele (feromon tuzaklar), kültürel önlemler ve ekonomik zarar seviyesi aşılırsa uygun ilaçlama.")
+    elif "Yaprak Bitleri" in bocek_secimi:
+        st.info("**Biyolojisi ve Zararı:** Bitki özsuyunu emerek beslenirler ve virüs hastalıklarını taşırlar.")
+        st.success("**Mücadele Yöntemleri:** Uğur böceği gibi doğal düşmanların korunması, zararlı yoğunluğuna göre spesifik preparatlar.")
+    elif "Kırmızı Örümcek" in bocek_secimi:
+        st.info("**Biyolojisi danışma:** Özellikle sıcak ve kurak dönemlerde yaprak altlarında ağ örerek özsu emerler.")
+        st.success("**Mücadele Yöntemleri:** Kükürtlü uygulamalar ve akarisitler.")
+    else:
+        st.info("**Biyolojisi ve Zararı:** Tarım alanlarında yeni nesil istilacı zararlılardandır, meyve ve sebzelerde kalite kaybına yol açar.")
+        st.success("**Mücadele Yöntemleri:** Feromon tuzaklar ile kitle yakalama ve mekanik mücadele.")
 
+with tab3:
+    st.subheader("Saha Veri Yükleme ve Grafik Analizleri")
+    st.write("Excel veya CSV formatındaki saha ölçüm verilerinizi yükleyerek interaktif grafikler oluşturun.")
+    
+    uploaded_data = st.file_uploader("Saha Veri Dosyasını Yükle (CSV veya Excel)", type=["csv", "xlsx"])
+    
+    if uploaded_data is not None:
+        try:
+            if uploaded_data.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_data)
             else:
-                st.warning(t["no_data"])
-        else:
-            st.error(t["sheet_error"].format(code=response.status_code))
-    except Exception as e:
-        st.error(f"{t['error']}: {e}")
+                df = pd.read_excel(uploaded_data)
+                
+            st.write("### Yüklenen Veri Önizlemesi", df.head())
+            
+            # Grafik Çizdirme Alanı
+            st.write("### Veri Görselleştirme")
+            kolonlar = df.columns.tolist()
+            secilen_x = st.selectbox("X Ekseni için sütun seçin:", kolonlar)
+            secilen_y = st.selectbox("Y Ekseni için sütun seçin:", kolonlar)
+            
+            if st.button("Grafik Oluştur"):
+                fig = px.bar(df, x=secilen_x, y=secilen_y, title="Saha Ölçüm Grafiği")
+                st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f"Veri okunurken hata oluştu: {e}")
+    else:
+        st.info("Henüz veri yüklenmedi. Örnek bir veri analizi için yukarıdan dosya yükleyebilirsiniz.")
