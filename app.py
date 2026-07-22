@@ -91,27 +91,32 @@ with tab2:
         st.success("**Mücadele Yöntemleri:** Feromon tuzaklar ile kitle yakalama ve mekanik mücadele.")
 
 with tab3:
-    st.subheader("Saha Verileri ve Google E-Tablo Analizleri")
-    st.write("Google E-Tablolar üzerindeki saha ölçüm verileriniz otomatik olarak çekilmektedir.")
+    st.subheader("Saha Veri Yükleme ve Grafik Analizleri")
+    st.write("Saha ölçüm verilerinizi (Excel veya CSV olarak) yükleyerek interaktif tablolar ve grafikler oluşturun.")
     
-    # Doğru formatta Google E-Tablo CSV export linki
-    sheet_id = "1Nd6NlzF74TFilv1QSnnsWC2Iqft5bWKf2qaKFX6C2No"
-    sheet_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
+    uploaded_data = st.file_uploader("Saha Veri Dosyasını Yükle (CSV veya XLSX)", type=["csv", "xlsx"])
     
-    try:
-        df = pd.read_csv(sheet_url)
-        st.success("Google E-Tablo verileri başarıyla yüklendi!")
-        st.write("### Tablo Önizlemesi", df.head())
-        
-        # Grafik Çizdirme Alanı
-        st.write("### Veri Görselleştirme ve Grafikler")
-        kolonlar = df.columns.tolist()
-        secilen_x = st.selectbox("X Ekseni için sütun seçin:", kolonlar)
-        secilen_y = st.selectbox("Y Ekseni için sütun seçin:", kolonlar)
-        
-        if st.button("Grafik Oluştur"):
-            fig = px.bar(df, x=secilen_x, y=secilen_y, title="Saha Ölçüm Grafiği")
-            st.plotly_chart(fig, use_container_width=True)
+    if uploaded_data is not None:
+        try:
+            if uploaded_data.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_data)
+            else:
+                df = pd.read_excel(uploaded_data)
+                
+            st.success("Veriler başarıyla yüklendi!")
+            st.write("### Tablo Önizlemesi", df.head())
             
-    except Exception as e:
-        st.error(f"Veriler yüklenirken bir hata oluştu: {e}")
+            # Grafik Çizdirme Alanı
+            st.write("### Veri Görselleştirme ve Grafikler")
+            kolonlar = df.columns.tolist()
+            secilen_x = st.selectbox("X Ekseni için sütun seçin:", kolonlar)
+            secilen_y = st.selectbox("Y Ekseni için sütun seçin:", kolonlar)
+            
+            if st.button("Grafik Oluştur"):
+                fig = px.bar(df, x=secilen_x, y=secilen_y, title="Saha Ölçüm Grafiği")
+                st.plotly_chart(fig, use_container_width=True)
+                
+        except Exception as e:
+            st.error(f"Veriler okunurken bir hata oluştu: {e}")
+    else:
+        st.info("Henüz veri yüklenmedi. Örnek bir veri analizi için yukarıdan dosya yükleyebilirsiniz.")
