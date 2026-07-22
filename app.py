@@ -72,8 +72,8 @@ with tab1:
             if aktif_gorsel is not None:
                 with st.spinner("Yapay zeka bitki fizyolojisini, iklim etkilerini ve MEB biyoloji kazanımlarını inceliyor..."):
                     try:
-                        # Güncel ve kararlı model adı kullanıldı
-                        model = genai.GenerativeModel('gemini-2.5-flash')
+                        # En güncel ve kararlı model adı kullanıldı
+                        model = genai.GenerativeModel('gemini-2.0-flash')
                         prompt = (
                             "Sen uzman bir biyoloji ve tarım bilimleri danışmanısın. "
                             f"İncelenen Bitki: {bitki_adi}, Rakım: {rakim_input}m, Hava Durumu: {hava_durumu}, "
