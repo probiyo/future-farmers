@@ -117,4 +117,4 @@ with tab3:
         except Exception as e:
             st.error(f"Veri okunurken hata oluştu: {e}")
     else:
-        st.info("Henüz veri yüklenmedi. Örnek bir veri analizi için yukarıdan dosya yükleyebilirsiniz.")
+        st.info("Henüz veri yüklenmedi. Örnek bir veri a
