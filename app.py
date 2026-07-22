@@ -4,11 +4,23 @@ from PIL import Image
 import pandas as pd
 import plotly.express as px
 import os
-import base64
-from io import BytesIO
 
 # Sayfa yapılandırması
 st.set_page_config(page_title="Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı", page_icon="🌱", layout="wide")
+
+# Kamerayı küçültmek için özel CSS (Koca bir ekranı kaplamaması için)
+st.markdown("""
+    <style>
+    [data-testid="stCameraInput"] video {
+        max-width: 350px !important;
+        border-radius: 10px;
+    }
+    [data-testid="stCameraInput"] img {
+        max-width: 350px !important;
+        border-radius: 10px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # API Anahtarı Ayarı
 try:
@@ -33,18 +45,17 @@ if "saha_verileri" not in st.session_state:
     ])
 
 # Sekmeler
-tab1, tab2, tab3 = st.tabs(["📸 Saha Gözlem & AI Doktor", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafik Analizleri"])
+tab1, tab2, tab3 = tab3 = st.tabs(["📸 Saha Gözlem & AI Doktor", "🐛 Böcek Bilgileri & Seçimleri", "📊 Saha Verileri ve Grafik Analizleri"])
 
 with tab1:
     st.subheader("Saha Gözlem Verisi, İklim Faktörleri ve AI Analizi")
-    st.write("Öğrenciler sahada hava durumunu, rakımı, toprak pH değerini girer; bitki fotoğrafını yükleyerek yapay zekanın ekolojik analiziyle otomatik rapor oluşturur.")
+    st.write("Öğrenciler sahada hava durumunu, rakımı, toprak pH değerini girer; bitki fotoğrafını yükleyerek veya kameradan çekerek yapay zekanın ekolojik analiziyle otomatik rapor oluşturur.")
     
     with st.form("gelismis_saha_formu"):
         col1, col2 = st.columns(2)
         with col1:
             tarih_input = st.date_input("Gözlem Tarihi")
             
-            # Gözlem türü sadeleştirildi: Çay Bitkisi veya Diğer (Bilimsel İsim)
             gozlem_turu_secimi = st.selectbox("İncelenen Bitki Türü", ["Çay Bitkisi", "Diğer Bitki (Bilimsel Adı Giriniz)"])
             
             bitki_adi = "Camellia sinensis (Çay)"
@@ -58,14 +69,16 @@ with tab1:
             toprak_ph = st.number_input("Toprak pH Değeri", min_value=0.0, max_value=14.0, value=4.8, step=0.1)
         
         st.markdown("---")
-        upload_option = st.radio("Görüntü Kaynağı:", ["Fotoğraf Yükle", "Kameradan Çek"])
+        upload_option = st.radio("Görüntü Kaynağı:", ["Dosya Yükle / Telefondan Seç", "Kameradan Canlı Çek"])
         
         uploaded_file = None
         camera_file = None
-        if upload_option == "Fotoğraf Yükle":
-            uploaded_file = st.file_uploader("Bitki yaprak, kök veya toprak yüzeyi fotoğrafı...", type=["jpg", "jpeg", "png"])
+        
+        if upload_option == "Dosya Yükle / Telefondan Seç":
+            uploaded_file = st.file_uploader("Bitki yaprak, kök veya toprak yüzeyi fotoğrafı seçin...", type=["jpg", "jpeg", "png"])
         else:
-            camera_file = st.camera_input("Kameradan Çek")
+            st.info("Kamerayı kullanmak için tarayıcınızın kamera iznine izin vermeniz gerekebilir.")
+            camera_file = st.camera_input("Kamera (Fotoğraf Çekmek İçin Tıklayın)")
             
         ek_notlar = st.text_area("Öğrenci Gözlem Notları ve Ek Açıklamalar:")
         
@@ -79,7 +92,7 @@ with tab1:
                 aktif_gorsel = Image.open(camera_file)
                 
             if aktif_gorsel is not None:
-                st.image(aktif_gorsel, caption="Analiz Edilen Saha Görseli", width=400)
+                st.image(aktif_gorsel, caption="Analiz Edilen Saha Görseli", width=300)
                 with st.spinner("Yapay zeka bitki fizyolojisini, iklim etkilerini ve MEB biyoloji kazanımlarını inceliyor..."):
                     try:
                         model = genai.GenerativeModel('gemini-1.5-flash')
