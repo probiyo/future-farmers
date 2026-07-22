@@ -40,7 +40,6 @@ with tab1:
     st.markdown("---")
     st.info("💡 **Fotoğraf Çekme / Yükleme:** Aşağıdaki alandan telefonunuzun kamerasını doğrudan açarak fotoğraf çekebilir veya galerinizden seçebilirsiniz.")
     
-    # Dosya yükleyiciyi formun dışına aldık ki telefonda anında işlensin
     uploaded_file = st.file_uploader("Bitki Yaprak veya Toprak Fotoğrafı Seç / Çek", type=["jpg", "jpeg", "png"])
     
     aktif_gorsel = None
@@ -73,7 +72,8 @@ with tab1:
             if aktif_gorsel is not None:
                 with st.spinner("Yapay zeka bitki fizyolojisini, iklim etkilerini ve MEB biyoloji kazanımlarını inceliyor..."):
                     try:
-                        model = genai.GenerativeModel('gemini-1.5-flash')
+                        # Güncel ve kararlı model adı kullanıldı
+                        model = genai.GenerativeModel('gemini-2.5-flash')
                         prompt = (
                             "Sen uzman bir biyoloji ve tarım bilimleri danışmanısın. "
                             f"İncelenen Bitki: {bitki_adi}, Rakım: {rakim_input}m, Hava Durumu: {hava_durumu}, "
