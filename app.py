@@ -22,7 +22,7 @@ except Exception as e:
     st.error(f"Yapılandırma hatası: {e}")
 
 st.title("🌱 Future Farmers Pro - Akıllı Tarım ve Biyoloji Laboratuvarı")
-st.write("Hoş geldiniz Hazreti Yusuf hocam! İklim değişimlerinin çay ve bitki ekolojisine etkisini inceleyen akıllı saha takip sistemi.")
+st.write("Hoş geldiniz hocam! İklim değişimlerinin çay ve bitki ekolojisine etkisini inceleyen akıllı saha takip sistemi.")
 
 # Oturum durumunda veri deposu
 if "saha_verileri" not in st.session_state:
@@ -35,8 +35,19 @@ tab1, tab2, tab3 = st.tabs(["📸 Saha Gözlem & AI Doktor", "🐛 Böcek Bilgil
 
 with tab1:
     st.subheader("Saha Gözlem Verisi, İklim Faktörleri ve AI Analizi")
-    st.write("Öğrenciler sahada hava durumunu, rakımı, toprak pH değerini girer; fotoğraf yükleyerek veya kameradan çekerek yapay zekanın ekolojik analiziyle otomatik rapor oluşturur.")
+    st.write("Önce telefonunuzdan fotoğraf çekin veya yükleyin, ardından form alanlarını doldurup analiz başlatın.")
     
+    st.markdown("---")
+    st.info("💡 **Fotoğraf Çekme / Yükleme:** Aşağıdaki alandan telefonunuzun kamerasını doğrudan açarak fotoğraf çekebilir veya galerinizden seçebilirsiniz.")
+    
+    # Dosya yükleyiciyi formun dışına aldık ki telefonda anında işlensin
+    uploaded_file = st.file_uploader("Bitki Yaprak veya Toprak Fotoğrafı Seç / Çek", type=["jpg", "jpeg", "png"])
+    
+    aktif_gorsel = None
+    if uploaded_file is not None:
+        aktif_gorsel = Image.open(uploaded_file)
+        st.image(aktif_gorsel, caption="Yüklenen / Çekilen Saha Görseli", width=300)
+
     with st.form("gelismis_saha_formu"):
         col1, col2 = st.columns(2)
         with col1:
@@ -54,20 +65,12 @@ with tab1:
             hava_durumu = st.selectbox("Hava Durumu (İklimsel Takip)", ["Güneşli", "Bulutlu", "Yağmurlu", "Sisli", "Karlı", "Don Tehlikesi"])
             toprak_ph = st.number_input("Toprak pH Değeri", min_value=0.0, max_value=14.0, value=4.8, step=0.1)
         
-        st.markdown("---")
-        st.info("💡 **Fotoğraf Çekme / Yükleme:** Aşağıdaki alandan telefonunuzun kamerasını doğrudan açarak fotoğraf çekebilir veya galerinizden seçebilirsiniz.")
-        
-        uploaded_file = st.file_uploader("Bitki Yaprak veya Toprak Fotoğrafı Seç / Çek", type=["jpg", "jpeg", "png"])
-            
         ek_notlar = st.text_area("Öğrenci Gözlem Notları ve Ek Açıklamalar:")
         
         submit_button = st.form_submit_button(label="AI ile Analiz Et ve Kaydet")
         
         if submit_button:
-            if uploaded_file is not None:
-                aktif_gorsel = Image.open(uploaded_file)
-                st.image(aktif_gorsel, caption="Analiz Edilen Saha Görseli", width=300)
-                
+            if aktif_gorsel is not None:
                 with st.spinner("Yapay zeka bitki fizyolojisini, iklim etkilerini ve MEB biyoloji kazanımlarını inceliyor..."):
                     try:
                         model = genai.GenerativeModel('gemini-1.5-flash')
@@ -103,7 +106,7 @@ with tab1:
                     except Exception as e:
                         st.error(f"AI analizi sırasında hata oluştu: {e}")
             else:
-                st.warning("Lütfen analiz için bir fotoğraf yükleyin veya kameradan çekip ekleyin!")
+                st.warning("Lütfen önce yukarıdan bir fotoğraf yükleyin veya kameradan çekin!")
 
 with tab2:
     st.subheader("Böcek Bilgileri ve Zararlı Seçimleri")
@@ -141,7 +144,7 @@ with tab3:
             mime="text/csv",
         )
         
-        st.write("### İklim and Toprak Verisi Görselleştirme")
+        st.write("### İklim ve Toprak Verisi Görselleştirme")
         kolonlar = ["Rakım (m)", "Toprak pH"]
         secilen_y = st.selectbox("Grafik Değeri Seçin:", kolonlar)
         
